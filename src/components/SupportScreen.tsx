@@ -1,17 +1,66 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Brain, Sparkles, ShieldCheck, ChevronRight, X, AlertCircle, CheckCircle2, Activity, MessageSquare, Send, UserCircle, Copy, Check } from 'lucide-react';
+import { Heart, Brain, Sparkles, ShieldCheck, ChevronRight, X, AlertCircle, CheckCircle2, Activity, MessageSquare, Send, UserCircle, Copy, Check, Phone, MessageCircle, Mail, MapPin } from 'lucide-react';
 import { POSTPARTUM_RECOVERY, POSTPARTUM_MENTAL_HEALTH, PELVIC_FLOOR_EXERCISES } from '../mockData';
-import { PostpartumRecovery, Comment } from '../types';
+import { PostpartumRecovery, Comment, UserStage } from '../types';
 import { useUser } from '../UserContext';
+import { HospitalListModal } from './HospitalListModal';
 
 export const SupportScreen: React.FC = () => {
-  const { profile } = useUser();
+  const { profile, updateProfile } = useUser();
+  const [activeView, setActiveView] = useState<'hub' | 'recovery' | 'mental-health' | 'doctor' | 'hospital' | 'doula' | 'pelvic'>('hub');
   const [selectedRecovery, setSelectedRecovery] = useState<PostpartumRecovery | null>(null);
-  const [showDoulaModal, setShowDoulaModal] = useState(false);
   const [showPeerModal, setShowPeerModal] = useState(false);
+  const [showDoctorActions, setShowDoctorActions] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [isEditingDoctor, setIsEditingDoctor] = useState(false);
+  const [emergencyNote, setEmergencyNote] = useState('');
+  const [doctorForm, setDoctorForm] = useState({
+    name: profile.doctorContact?.name || '',
+    hospital: profile.doctorContact?.hospital || '',
+    phone: profile.doctorContact?.phone || '',
+    whatsapp: profile.doctorContact?.whatsapp || '',
+    email: profile.doctorContact?.email || '',
+    specialty: profile.doctorContact?.specialty || '',
+    notes: profile.doctorContact?.notes || ''
+  });
   const [copied, setCopied] = useState(false);
   const [modalColor, setModalColor] = useState<'teal' | 'indigo' | 'amber' | 'rose'>('teal');
+  const [showHospitalModal, setShowHospitalModal] = useState(false);
+  const [showDoulaModal, setShowDoulaModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'hospitals' | 'doulas'>('hospitals');
+
+  const hubCards = [
+    { id: 'recovery', title: 'Postpartum Recovery', icon: Heart, color: 'teal', description: 'Physical healing guides' },
+    { id: 'mental-health', title: 'Postpartum Mental Health', icon: Brain, color: 'indigo', description: 'Emotional well-being' },
+    { id: 'doctor', title: 'Contact My Doctor', icon: UserCircle, color: 'rose', description: 'Quick medical access' },
+    { id: 'hospital', title: 'Find Nearest Hospital', icon: MapPin, color: 'pink', description: 'Emergency & maternal care' },
+    { id: 'doula', title: 'Ask a Doula', icon: MessageCircle, color: 'stone', description: 'Professional support' },
+    { id: 'pelvic', title: 'Pelvic Floor Exercises', icon: Sparkles, color: 'amber', description: 'Core strengthening' },
+  ];
+
+  const handleSaveDoctor = () => {
+    updateProfile({ doctorContact: doctorForm });
+    setIsEditingDoctor(false);
+  };
+
+  const handleEmergencyAlert = () => {
+    const doctor = profile.doctorContact;
+    if (!doctor) return;
+
+    const message = `Hello Dr. ${doctor.name}, this is ${profile.name}. I need urgent support regarding my ${profile.stage === UserStage.PREGNANT ? 'pregnancy' : 'postpartum'} condition. Please reach me as soon as possible.${emergencyNote ? ` My current concern is: ${emergencyNote}` : ''}`;
+    
+    if (doctor.phone) {
+      window.location.href = `sms:${doctor.phone}?body=${encodeURIComponent(message)}`;
+    } else if (doctor.whatsapp) {
+      window.open(`https://wa.me/${doctor.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+    } else if (doctor.email) {
+      window.location.href = `mailto:${doctor.email}?subject=URGENT: Support Needed&body=${encodeURIComponent(message)}`;
+    }
+    
+    setShowEmergencyModal(false);
+    setShowDoctorActions(false);
+  };
   const [mentalHealthComments, setMentalHealthComments] = useState<Record<string, Comment[]>>(() => {
     const initialComments: Record<string, Comment[]> = {};
     POSTPARTUM_MENTAL_HEALTH.forEach(item => {
@@ -104,6 +153,28 @@ export const SupportScreen: React.FC = () => {
       icon: 'text-rose-500',
       modalBg: 'bg-rose-50/50',
       modalBorder: 'border-rose-100/50'
+    },
+    pink: {
+      bg: 'bg-pink-50',
+      border: 'border-pink-100',
+      text: 'text-pink-900',
+      accent: 'bg-pink-500',
+      button: 'bg-pink-600',
+      hover: 'hover:bg-pink-50',
+      icon: 'text-pink-500',
+      modalBg: 'bg-pink-50/50',
+      modalBorder: 'border-pink-100/50'
+    },
+    stone: {
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      text: 'text-stone-900',
+      accent: 'bg-stone-500',
+      button: 'bg-stone-600',
+      hover: 'hover:bg-stone-50',
+      icon: 'text-stone-500',
+      modalBg: 'bg-stone-50/50',
+      modalBorder: 'border-stone-100/50'
     }
   };
 
@@ -115,150 +186,340 @@ export const SupportScreen: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4">
-        <h1 className="text-3xl font-bold text-stone-900">Support Hub</h1>
-        <p className="text-stone-500">Care for your mind and body</p>
+      <header className="pt-8 px-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900">Support Hub</h1>
+          <p className="text-stone-500">Care for your mind and body</p>
+        </div>
+        {activeView !== 'hub' && (
+          <button 
+            onClick={() => setActiveView('hub')}
+            className="p-2 bg-stone-100 rounded-full text-stone-500 hover:bg-stone-200 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        )}
       </header>
 
-      {/* Postpartum Recovery Section */}
-      <section className="px-4">
-        <div className={`${colorClasses.teal.bg} rounded-[2rem] p-6 border ${colorClasses.teal.border}`}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`${colorClasses.teal.accent} p-2 rounded-xl text-white`}>
-              <Heart size={20} />
-            </div>
-            <h2 className={`text-xl font-bold ${colorClasses.teal.text}`}>Postpartum Recovery</h2>
-          </div>
-          <p className="text-teal-800 text-sm mb-6 leading-relaxed">
-            Healing takes time. Be gentle with yourself as your body recovers from the incredible journey of childbirth.
-          </p>
-          
-          <div className="grid grid-cols-1 gap-3">
-            {POSTPARTUM_RECOVERY.map((item) => {
-              const Icon = getIcon(item.id);
-              return (
-                <button 
-                  key={item.id} 
-                  onClick={() => openModal(item, 'teal')}
-                  className={`bg-white p-4 rounded-2xl border ${colorClasses.teal.border} flex items-center justify-between ${colorClasses.teal.text} font-bold text-sm ${colorClasses.teal.hover} transition-colors`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} className={colorClasses.teal.icon} />
-                    {item.title}
-                  </div>
-                  <ChevronRight size={16} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Postpartum Mental Health Section */}
-      <section className="px-4">
-        <div className={`${colorClasses.indigo.bg} rounded-[2rem] p-6 border ${colorClasses.indigo.border}`}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`${colorClasses.indigo.accent} p-2 rounded-xl text-white`}>
-              <Brain size={20} />
-            </div>
-            <h2 className={`text-xl font-bold ${colorClasses.indigo.text}`}>Postpartum Mental Health</h2>
-          </div>
-          <p className="text-indigo-800 text-sm mb-6 leading-relaxed">
-            Your emotional well-being is just as important as your physical health. You are not alone in this journey.
-          </p>
-          
-          <div className="grid grid-cols-1 gap-3 mb-6">
-            {POSTPARTUM_MENTAL_HEALTH.map((item) => {
-              const Icon = getIcon(item.id);
-              return (
-                <button 
-                  key={item.id} 
-                  onClick={() => openModal(item, 'indigo')}
-                  className={`bg-white p-4 rounded-2xl border ${colorClasses.indigo.border} flex items-center justify-between ${colorClasses.indigo.text} font-bold text-sm ${colorClasses.indigo.hover} transition-colors`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} className={colorClasses.indigo.icon} />
-                    {item.title}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {mentalHealthComments[item.id] && (
-                      <span className="flex items-center gap-1 text-[10px] text-indigo-400">
-                        <MessageSquare size={12} /> {mentalHealthComments[item.id].length}
-                      </span>
-                    )}
-                    <ChevronRight size={16} />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="space-y-3 pt-4 border-t border-indigo-100">
-            <button 
-              onClick={() => setShowPeerModal(true)}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
-            >
-              Talk to a Peer Counselor
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Ask a Doula Section */}
-      <section className="px-4">
-        <div className="bg-stone-50 rounded-[2rem] p-6 border border-stone-200">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-stone-500 p-2 rounded-xl text-white">
-              <UserCircle size={20} />
-            </div>
-            <h2 className="text-xl font-bold text-stone-900">Ask a Doula</h2>
-          </div>
-          <p className="text-stone-600 text-sm mb-6 leading-relaxed">
-            Personalized guidance and emotional support from trained birth and postpartum professionals.
-          </p>
-          
-          <button 
-            onClick={() => setShowDoulaModal(true)}
-            className="w-full bg-stone-800 text-white py-4 rounded-2xl font-bold hover:bg-stone-900 transition-colors shadow-lg shadow-stone-100"
+      <AnimatePresence mode="wait">
+        {activeView === 'hub' ? (
+          <motion.section 
+            key="hub"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="px-4 grid grid-cols-1 gap-4"
           >
-            Connect with a Doula
-          </button>
-        </div>
-      </section>
-
-      {/* Pelvic Floor Exercises Section */}
-      <section className="px-4">
-        <div className={`${colorClasses.amber.bg} rounded-[2rem] p-6 border ${colorClasses.amber.border}`}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`${colorClasses.amber.accent} p-2 rounded-xl text-white`}>
-              <Sparkles size={20} />
-            </div>
-            <h2 className={`text-xl font-bold ${colorClasses.amber.text}`}>Pelvic Floor Exercises</h2>
-          </div>
-          <p className="text-amber-800 text-sm mb-6 leading-relaxed">
-            Strengthening your core and pelvic floor helps with recovery and long-term wellness.
-          </p>
-          
-          <div className="grid grid-cols-1 gap-3">
-            {PELVIC_FLOOR_EXERCISES.map((item) => {
-              const Icon = getIcon(item.id);
-              return (
-                <button 
-                  key={item.id} 
-                  onClick={() => openModal(item, 'amber')}
-                  className={`bg-white p-4 rounded-2xl border ${colorClasses.amber.border} flex items-center justify-between ${colorClasses.amber.text} font-bold text-sm ${colorClasses.amber.hover} transition-colors`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} className={colorClasses.amber.icon} />
-                    {item.title}
+            {hubCards.map((card) => (
+              <button
+                key={card.id}
+                onClick={() => setActiveView(card.id as any)}
+                className={`bg-white p-5 rounded-[2rem] border border-stone-100 shadow-sm flex items-center gap-4 text-left hover:border-pink-200 transition-all group`}
+              >
+                <div className={`${colorClasses[card.color as keyof typeof colorClasses].bg} p-4 rounded-2xl ${colorClasses[card.color as keyof typeof colorClasses].icon} group-hover:scale-110 transition-transform`}>
+                  <card.icon size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-stone-900">{card.title}</h3>
+                  <p className="text-xs text-stone-400">{card.description}</p>
+                </div>
+                <ChevronRight size={20} className="text-stone-300 group-hover:text-pink-400 group-hover:translate-x-1 transition-all" />
+              </button>
+            ))}
+          </motion.section>
+        ) : (
+          <motion.div
+            key={activeView}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            {activeView === 'recovery' && (
+              <section className="px-4">
+                <div className={`${colorClasses.teal.bg} rounded-[2rem] p-6 border ${colorClasses.teal.border}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`${colorClasses.teal.accent} p-2 rounded-xl text-white`}>
+                      <Heart size={20} />
+                    </div>
+                    <h2 className={`text-xl font-bold ${colorClasses.teal.text}`}>Postpartum Recovery</h2>
                   </div>
-                  <ChevronRight size={16} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+                  <p className="text-teal-800 text-sm mb-6 leading-relaxed">
+                    Healing takes time. Be gentle with yourself as your body recovers from the incredible journey of childbirth.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    {POSTPARTUM_RECOVERY.map((item) => {
+                      const Icon = getIcon(item.id);
+                      return (
+                        <button 
+                          key={item.id} 
+                          onClick={() => openModal(item, 'teal')}
+                          className={`bg-white p-4 rounded-2xl border ${colorClasses.teal.border} flex items-center justify-between ${colorClasses.teal.text} font-bold text-sm ${colorClasses.teal.hover} transition-colors`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon size={18} className={colorClasses.teal.icon} />
+                            {item.title}
+                          </div>
+                          <ChevronRight size={16} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {activeView === 'mental-health' && (
+              <section className="px-4">
+                <div className={`${colorClasses.indigo.bg} rounded-[2rem] p-6 border ${colorClasses.indigo.border}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`${colorClasses.indigo.accent} p-2 rounded-xl text-white`}>
+                      <Brain size={20} />
+                    </div>
+                    <h2 className={`text-xl font-bold ${colorClasses.indigo.text}`}>Postpartum Mental Health</h2>
+                  </div>
+                  <p className="text-indigo-800 text-sm mb-6 leading-relaxed">
+                    Your emotional well-being is just as important as your physical health. You are not alone in this journey.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-3 mb-6">
+                    {POSTPARTUM_MENTAL_HEALTH.map((item) => {
+                      const Icon = getIcon(item.id);
+                      return (
+                        <button 
+                          key={item.id} 
+                          onClick={() => openModal(item, 'indigo')}
+                          className={`bg-white p-4 rounded-2xl border ${colorClasses.indigo.border} flex items-center justify-between ${colorClasses.indigo.text} font-bold text-sm ${colorClasses.indigo.hover} transition-colors`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon size={18} className={colorClasses.indigo.icon} />
+                            {item.title}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {mentalHealthComments[item.id] && (
+                              <span className="flex items-center gap-1 text-[10px] text-indigo-400">
+                                <MessageSquare size={12} /> {mentalHealthComments[item.id].length}
+                              </span>
+                            )}
+                            <ChevronRight size={16} />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-3 pt-4 border-t border-indigo-100">
+                    <button 
+                      onClick={() => setShowPeerModal(true)}
+                      className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+                    >
+                      Talk to a Peer Counselor
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {activeView === 'doctor' && (
+              <section className="px-4">
+                <div className="bg-rose-50 rounded-[2rem] p-6 border border-rose-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-rose-500 p-2 rounded-xl text-white">
+                        <UserCircle size={20} />
+                      </div>
+                      <h2 className="text-xl font-bold text-rose-900">Contact My Doctor</h2>
+                    </div>
+                    {profile.doctorContact && (
+                      <button 
+                        onClick={() => setIsEditingDoctor(true)}
+                        className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
+                      >
+                        Edit Info
+                      </button>
+                    )}
+                  </div>
+
+                  {!profile.doctorContact || isEditingDoctor ? (
+                    <div className="space-y-4">
+                      <p className="text-rose-800 text-sm leading-relaxed">
+                        {isEditingDoctor ? 'Update your doctor\'s contact details below.' : 'Add your doctor\'s information so you can reach them quickly in case of concerns or emergencies.'}
+                      </p>
+                      
+                      <div className="space-y-3 bg-white/50 p-4 rounded-2xl border border-rose-100">
+                        <div className="grid grid-cols-1 gap-3">
+                          <input 
+                            type="text"
+                            placeholder="Doctor's Name"
+                            value={doctorForm.name}
+                            onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })}
+                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                          />
+                          <input 
+                            type="text"
+                            placeholder="Hospital/Clinic Name"
+                            value={doctorForm.hospital}
+                            onChange={(e) => setDoctorForm({ ...doctorForm, hospital: e.target.value })}
+                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                          />
+                          <div className="grid grid-cols-2 gap-3">
+                            <input 
+                              type="tel"
+                              placeholder="Phone Number"
+                              value={doctorForm.phone}
+                              onChange={(e) => setDoctorForm({ ...doctorForm, phone: e.target.value })}
+                              className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                            />
+                            <input 
+                              type="tel"
+                              placeholder="WhatsApp (Optional)"
+                              value={doctorForm.whatsapp}
+                              onChange={(e) => setDoctorForm({ ...doctorForm, whatsapp: e.target.value })}
+                              className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                            />
+                          </div>
+                          <input 
+                            type="email"
+                            placeholder="Email Address (Optional)"
+                            value={doctorForm.email}
+                            onChange={(e) => setDoctorForm({ ...doctorForm, email: e.target.value })}
+                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                          />
+                          <input 
+                            type="text"
+                            placeholder="Specialty (e.g. OB/GYN)"
+                            value={doctorForm.specialty}
+                            onChange={(e) => setDoctorForm({ ...doctorForm, specialty: e.target.value })}
+                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                          />
+                        </div>
+                        <button 
+                          onClick={handleSaveDoctor}
+                          disabled={!doctorForm.name || !doctorForm.hospital || !doctorForm.phone}
+                          className="w-full bg-rose-600 text-white py-4 rounded-2xl font-bold hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isEditingDoctor ? 'Save Changes' : 'Save Doctor Info'}
+                        </button>
+                        {isEditingDoctor && (
+                          <button 
+                            onClick={() => setIsEditingDoctor(false)}
+                            className="w-full text-stone-400 text-xs font-bold py-2"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-white p-5 rounded-3xl border border-rose-100 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600">
+                          <UserCircle size={28} />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-stone-900">Dr. {profile.doctorContact.name}</h3>
+                          <p className="text-xs text-stone-500">{profile.doctorContact.specialty || 'Doctor'} • {profile.doctorContact.hospital}</p>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => setShowDoctorActions(true)}
+                        className="w-full bg-rose-600 text-white py-4 rounded-2xl font-bold hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100 flex items-center justify-center gap-2"
+                      >
+                        <Phone size={18} /> Contact My Doctor
+                      </button>
+                    </div>
+                  )}
+                  
+                  <p className="mt-4 text-[10px] text-rose-400 text-center italic">
+                    In a life-threatening emergency, please call 911 immediately.
+                  </p>
+                </div>
+              </section>
+            )}
+
+            {activeView === 'hospital' && (
+              <section className="px-4">
+                <div className="bg-stone-900 rounded-[2rem] p-6 text-white shadow-xl shadow-stone-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-pink-600 p-2 rounded-xl">
+                      <MapPin size={20} />
+                    </div>
+                    <h2 className="text-xl font-bold">Find Nearest Hospital</h2>
+                  </div>
+                  <p className="text-stone-400 text-sm mb-6 leading-relaxed">
+                    In case of an emergency or if you need immediate maternal care, locate the nearest hospital or clinic.
+                  </p>
+                  <HospitalListModal 
+                    isOpen={true} 
+                    onClose={() => setActiveView('hub')} 
+                    inline={true}
+                  />
+                </div>
+              </section>
+            )}
+
+            {activeView === 'doula' && (
+              <section className="px-4">
+                <div className="bg-stone-50 rounded-[2rem] p-6 border border-stone-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-stone-500 p-2 rounded-xl text-white">
+                      <UserCircle size={20} />
+                    </div>
+                    <h2 className="text-xl font-bold text-stone-900">Ask a Doula</h2>
+                  </div>
+                  <p className="text-stone-600 text-sm mb-6 leading-relaxed">
+                    Personalized guidance and emotional support from trained birth and postpartum professionals.
+                  </p>
+                  
+                  <button 
+                    onClick={() => setShowDoulaModal(true)}
+                    className="w-full bg-stone-800 text-white py-4 rounded-2xl font-bold hover:bg-stone-900 transition-colors shadow-lg shadow-stone-100"
+                  >
+                    Connect with a Doula
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {activeView === 'pelvic' && (
+              <section className="px-4">
+                <div className={`${colorClasses.amber.bg} rounded-[2rem] p-6 border ${colorClasses.amber.border}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`${colorClasses.amber.accent} p-2 rounded-xl text-white`}>
+                      <Sparkles size={20} />
+                    </div>
+                    <h2 className={`text-xl font-bold ${colorClasses.amber.text}`}>Pelvic Floor Exercises</h2>
+                  </div>
+                  <p className="text-amber-800 text-sm mb-6 leading-relaxed">
+                    Strengthening your core and pelvic floor helps with recovery and long-term wellness.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    {PELVIC_FLOOR_EXERCISES.map((item) => {
+                      const Icon = getIcon(item.id);
+                      return (
+                        <button 
+                          key={item.id} 
+                          onClick={() => openModal(item, 'amber')}
+                          className={`bg-white p-4 rounded-2xl border ${colorClasses.amber.border} flex items-center justify-between ${colorClasses.amber.text} font-bold text-sm ${colorClasses.amber.hover} transition-colors`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon size={18} className={colorClasses.amber.icon} />
+                            {item.title}
+                          </div>
+                          <ChevronRight size={16} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Recovery Details Modal */}
       <AnimatePresence>
@@ -560,6 +821,164 @@ export const SupportScreen: React.FC = () => {
                   className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg transition-colors"
                 >
                   Request Support Now
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+        {/* Doctor Actions Panel */}
+        {showDoctorActions && profile.doctorContact && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDoctorActions(false)}
+            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end justify-center sm:items-center p-4"
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl space-y-6"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold text-stone-900">Contact Dr. {profile.doctorContact.name}</h3>
+                  <p className="text-xs text-stone-400">{profile.doctorContact.hospital}</p>
+                </div>
+                <button onClick={() => setShowDoctorActions(false)} className="p-2 hover:bg-stone-100 rounded-full">
+                  <X size={20} className="text-stone-400" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <a 
+                  href={`tel:${profile.doctorContact.phone}`}
+                  className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                >
+                  <div className="bg-green-100 p-2 rounded-xl text-green-600">
+                    <Phone size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-sm">Call Doctor</p>
+                    <p className="text-[10px] text-stone-400">{profile.doctorContact.phone}</p>
+                  </div>
+                </a>
+
+                {profile.doctorContact.whatsapp && (
+                  <a 
+                    href={`https://wa.me/${profile.doctorContact.whatsapp.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                  >
+                    <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
+                      <MessageCircle size={20} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-sm">Send WhatsApp Message</p>
+                      <p className="text-[10px] text-stone-400">Direct Message</p>
+                    </div>
+                  </a>
+                )}
+
+                <a 
+                  href={`sms:${profile.doctorContact.phone}`}
+                  className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                >
+                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
+                    <MessageSquare size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-sm">Send SMS</p>
+                    <p className="text-[10px] text-stone-400">Quick Text</p>
+                  </div>
+                </a>
+
+                {profile.doctorContact.email && (
+                  <a 
+                    href={`mailto:${profile.doctorContact.email}`}
+                    className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                  >
+                    <div className="bg-indigo-100 p-2 rounded-xl text-indigo-600">
+                      <Mail size={20} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-sm">Send Email</p>
+                      <p className="text-[10px] text-stone-400">{profile.doctorContact.email}</p>
+                    </div>
+                  </a>
+                )}
+
+                <button 
+                  onClick={() => setShowEmergencyModal(true)}
+                  className="flex items-center gap-4 p-4 bg-rose-50 rounded-2xl hover:bg-rose-100 transition-colors border border-rose-100"
+                >
+                  <div className="bg-rose-100 p-2 rounded-xl text-rose-600">
+                    <AlertCircle size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-sm text-rose-700">Emergency Alert</p>
+                    <p className="text-[10px] text-rose-500">Send pre-filled urgent message</p>
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Emergency Alert Confirmation Modal */}
+        {showEmergencyModal && profile.doctorContact && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl space-y-6"
+            >
+              <div className="text-center space-y-2">
+                <div className="bg-rose-100 w-16 h-16 rounded-full flex items-center justify-center text-rose-600 mx-auto">
+                  <AlertCircle size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-stone-900">Emergency Alert</h3>
+                <p className="text-sm text-stone-500">This will send an urgent message to Dr. {profile.doctorContact.name}.</p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Add a note (Optional)</label>
+                <textarea 
+                  value={emergencyNote}
+                  onChange={(e) => setEmergencyNote(e.target.value)}
+                  placeholder="What is happening? (e.g. heavy bleeding, severe pain)"
+                  className="w-full bg-stone-50 border border-stone-100 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-rose-200 transition-all h-24 resize-none"
+                />
+              </div>
+
+              <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-start gap-3">
+                <AlertCircle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-[10px] text-amber-800 leading-tight">
+                  <strong>Important:</strong> If this is a life-threatening emergency, please call 911 or your local emergency services immediately.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setShowEmergencyModal(false)}
+                  className="flex-1 py-4 rounded-2xl font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleEmergencyAlert}
+                  className="flex-1 py-4 rounded-2xl font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100"
+                >
+                  Send Alert
                 </button>
               </div>
             </motion.div>

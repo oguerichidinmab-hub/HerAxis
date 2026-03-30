@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useUser } from '../UserContext';
 import { UserStage } from '../types';
-import { Settings, Bell, Shield, Accessibility, LogOut, ChevronRight, Volume2, Type, Layout, Sparkles } from 'lucide-react';
+import { 
+  Settings, Bell, Shield, Accessibility, LogOut, ChevronRight, 
+  Volume2, Type, Layout, Sparkles, Calendar, Baby, Edit3, Check,
+  UserCircle
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const ProfileScreen: React.FC = () => {
   const { profile, updateProfile, togglePreference } = useUser();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingBabyName, setIsEditingBabyName] = useState(false);
+  const [isEditingDueDate, setIsEditingDueDate] = useState(false);
 
   return (
     <div className="space-y-6 pb-24">
@@ -12,25 +20,167 @@ export const ProfileScreen: React.FC = () => {
         <div className="w-24 h-24 bg-pink-100 rounded-full mx-auto mb-4 flex items-center justify-center text-pink-600 text-3xl font-bold border-4 border-white shadow-lg">
           {profile.name[0]}
         </div>
-        <h1 className="text-2xl font-bold text-stone-900">{profile.name}</h1>
-        <p className="text-stone-500 text-sm">
-          {profile.stage === UserStage.PREGNANT ? 'Pregnant' : 'New Mom'} • {profile.stageValue} {profile.stage === UserStage.PREGNANT ? 'Weeks' : 'Months'}
-        </p>
+        
+        <div className="relative inline-block group">
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <input 
+                autoFocus
+                type="text"
+                value={profile.name}
+                onChange={(e) => updateProfile({ name: e.target.value })}
+                onBlur={() => setIsEditingName(false)}
+                onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+                className="text-2xl font-bold text-stone-900 bg-stone-50 border-b-2 border-pink-500 text-center outline-none px-2 w-full max-w-[250px]"
+              />
+              <button onClick={() => setIsEditingName(false)} className="text-pink-600">
+                <Check size={20} />
+              </button>
+            </div>
+          ) : (
+            <div 
+              onClick={() => setIsEditingName(true)}
+              className="flex items-center justify-center gap-2 cursor-pointer group"
+            >
+              <h1 className="text-2xl font-bold text-stone-900">{profile.name}</h1>
+              <Edit3 size={16} className="text-stone-300 group-hover:text-pink-400 transition-colors" />
+            </div>
+          )}
+        </div>
+
+        <div className="text-stone-500 text-sm flex items-center justify-center gap-1 mt-1">
+          <span className="bg-pink-50 text-pink-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+            {profile.stage === UserStage.PREGNANT ? 'Pregnant' : 'New Mom'}
+          </span>
+          <span>•</span>
+          <span className="font-medium">
+            {profile.stageValue} {profile.stage === UserStage.PREGNANT ? 'Weeks' : 'Months'}
+          </span>
+        </div>
       </header>
 
+      {/* Journey Update Section */}
+      <section className="px-4">
+        <div className="bg-white p-6 rounded-[2.5rem] border border-stone-100 shadow-sm text-left">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-stone-400 font-bold uppercase tracking-widest">Update Your Journey</p>
+            <Sparkles size={16} className="text-pink-300" />
+          </div>
+          
+          <div className="flex p-1 bg-stone-50 rounded-2xl mb-5">
+            <button 
+              onClick={() => updateProfile({ stage: UserStage.PREGNANT })}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${profile.stage === UserStage.PREGNANT ? 'bg-white text-pink-600 shadow-sm' : 'text-stone-400'}`}
+            >
+              Pregnant
+            </button>
+            <button 
+              onClick={() => updateProfile({ stage: UserStage.NEW_MOM })}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${profile.stage === UserStage.NEW_MOM ? 'bg-white text-pink-600 shadow-sm' : 'text-stone-400'}`}
+            >
+              New Mom
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">
+                {profile.stage === UserStage.PREGNANT ? 'Current Week' : 'Baby\'s Age'}
+              </label>
+              <div className="relative">
+                <input 
+                  type="number"
+                  value={profile.stageValue}
+                  onChange={(e) => updateProfile({ stageValue: parseInt(e.target.value) || 0 })}
+                  className="w-full font-bold text-pink-600 text-xl bg-stone-50 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-pink-200 transition-all"
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium">
+                  {profile.stage === UserStage.PREGNANT ? 'Wks' : 'Mos'}
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Quick Switch</label>
+              <input 
+                type="text"
+                placeholder="e.g. Week 20"
+                className="w-full text-sm bg-stone-50 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-pink-200 transition-all placeholder:text-stone-300"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const val = e.currentTarget.value.toLowerCase();
+                    const num = parseInt(val.replace(/\D/g, ''));
+                    const updates: any = {};
+                    if (!isNaN(num)) updates.stageValue = num;
+                    if (val.includes('preg') || val.includes('week')) updates.stage = UserStage.PREGNANT;
+                    else if (val.includes('mom') || val.includes('month') || val.includes('baby')) updates.stage = UserStage.NEW_MOM;
+                    
+                    if (Object.keys(updates).length > 0) {
+                      updateProfile(updates);
+                      e.currentTarget.value = '';
+                      e.currentTarget.blur();
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Quick Actions */}
-      <section className="px-4 grid grid-cols-2 gap-3">
-        <button 
-          onClick={() => updateProfile({ stage: profile.stage === UserStage.PREGNANT ? UserStage.NEW_MOM : UserStage.PREGNANT, stageValue: 1 })}
-          className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm text-left"
-        >
-          <p className="text-xs text-stone-400 mb-1">Switch Stage</p>
-          <p className="font-bold text-pink-600 text-sm">Update Journey</p>
-        </button>
-        <button className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm text-left">
-          <p className="text-xs text-stone-400 mb-1">Due Date</p>
-          <p className="font-bold text-stone-800 text-sm">Set Date</p>
-        </button>
+      <section className="px-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm text-left relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Calendar size={40} className="text-pink-600" />
+            </div>
+            <p className="text-xs text-stone-400 mb-1 font-bold uppercase tracking-tighter">Due Date</p>
+            {isEditingDueDate ? (
+              <input 
+                autoFocus
+                type="date"
+                value={profile.dueDate || ''}
+                onChange={(e) => updateProfile({ dueDate: e.target.value })}
+                onBlur={() => setIsEditingDueDate(false)}
+                className="w-full font-bold text-stone-800 text-sm bg-stone-50 rounded-lg px-2 py-1 outline-none"
+              />
+            ) : (
+              <p 
+                onClick={() => setIsEditingDueDate(true)}
+                className="font-bold text-stone-800 text-sm cursor-pointer hover:text-pink-600 transition-colors"
+              >
+                {profile.dueDate ? new Date(profile.dueDate).toLocaleDateString() : 'Set Date'}
+              </p>
+            )}
+          </div>
+
+          <div className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm text-left relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Baby size={40} className="text-pink-600" />
+            </div>
+            <p className="text-xs text-stone-400 mb-1 font-bold uppercase tracking-tighter">Baby Name</p>
+            {isEditingBabyName ? (
+              <input 
+                autoFocus
+                type="text"
+                value={profile.babyName || ''}
+                onChange={(e) => updateProfile({ babyName: e.target.value })}
+                onBlur={() => setIsEditingBabyName(false)}
+                onKeyDown={(e) => e.key === 'Enter' && setIsEditingBabyName(false)}
+                placeholder="Name..."
+                className="w-full font-bold text-stone-800 text-sm bg-stone-50 rounded-lg px-2 py-1 outline-none"
+              />
+            ) : (
+              <p 
+                onClick={() => setIsEditingBabyName(true)}
+                className="font-bold text-stone-800 text-sm cursor-pointer hover:text-pink-600 transition-colors"
+              >
+                {profile.babyName || 'Edit Name'}
+              </p>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Accessibility Settings */}
@@ -38,7 +188,7 @@ export const ProfileScreen: React.FC = () => {
         <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
           <Accessibility size={20} className="text-pink-500" /> Accessibility
         </h3>
-        <div className="bg-white rounded-[2rem] border border-stone-100 overflow-hidden shadow-sm">
+        <div className="bg-white rounded-[2.5rem] border border-stone-100 overflow-hidden shadow-sm">
           <div className="divide-y divide-stone-50">
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -83,7 +233,7 @@ export const ProfileScreen: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-bold text-sm">Voice Guidance</p>
-                  <p className="text-xs text-stone-400">Audio playback (Mock)</p>
+                  <p className="text-xs text-stone-400">Audio playback</p>
                 </div>
               </div>
               <button
@@ -129,7 +279,7 @@ export const ProfileScreen: React.FC = () => {
       {/* General Settings */}
       <section className="px-4">
         <h3 className="text-lg font-bold mb-3">Settings</h3>
-        <div className="bg-white rounded-[2rem] border border-stone-100 overflow-hidden shadow-sm">
+        <div className="bg-white rounded-[2.5rem] border border-stone-100 overflow-hidden shadow-sm">
           <div className="divide-y divide-stone-50">
             {[
               { label: 'Notifications', icon: Bell },
@@ -158,3 +308,4 @@ export const ProfileScreen: React.FC = () => {
     </div>
   );
 };
+

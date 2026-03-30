@@ -3,12 +3,44 @@ export enum UserStage {
   NEW_MOM = 'NEW_MOM',
 }
 
+export interface DoctorContact {
+  name: string;
+  hospital: string;
+  phone: string;
+  whatsapp?: string;
+  email?: string;
+  specialty?: string;
+  notes?: string;
+}
+
+export interface Hospital {
+  id: string;
+  name: string;
+  address: string;
+  distance: string; // e.g., "1.2 km"
+  distanceValue: number; // for sorting
+  phone: string;
+  type: string; // e.g., "General Hospital", "Maternity Center"
+  isOpen: boolean;
+  availabilityStatus?: string; // e.g., "24/7 Emergency", "Open Now"
+  isMaternalCare: boolean;
+  isEmergencyCare: boolean;
+  isRecommended?: boolean;
+  openingHours: string;
+  services: string[];
+  description: string;
+  lat?: number;
+  lng?: number;
+}
+
 export interface UserProfile {
   name: string;
   stage: UserStage;
   stageValue: number; // Week of pregnancy or month of baby
   dueDate?: string;
   babyBirthDate?: string;
+  babyName?: string;
+  doctorContact?: DoctorContact;
   preferences: {
     largeText: boolean;
     simpleUI: boolean;
@@ -30,6 +62,7 @@ export interface PregnancyUpdate {
     tropical: { name: string; emoji: string; description: string; reasoning: string };
     veggies: { name: string; emoji: string; description: string; reasoning: string };
   };
+  nextActions: string[];
 }
 
 export interface BabyUpdate {
@@ -38,6 +71,7 @@ export interface BabyUpdate {
   description: string;
   milestones: string[];
   tips: string[];
+  nextActions: string[];
 }
 
 export interface Comment {
@@ -62,6 +96,8 @@ export interface NutritionTip {
   title: string;
   content: string;
   mealSuggestion: string;
+  benefits: string[];
+  nutrients: string[];
 }
 
 export interface PostpartumRecovery {

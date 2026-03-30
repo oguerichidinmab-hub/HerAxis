@@ -1,4 +1,4 @@
-import { PregnancyUpdate, BabyUpdate, ForumPost, NutritionTip, PostpartumRecovery } from './types';
+import { PregnancyUpdate, BabyUpdate, ForumPost, NutritionTip, PostpartumRecovery, Hospital } from './types';
 
 export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
   {
@@ -28,7 +28,12 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         description: "Tiny but mighty!",
         reasoning: "A Brussels sprout is a great visual for the compact but complex structure of your baby, who now has all their major organs formed."
       }
-    }
+    },
+    nextActions: [
+      "Schedule your next prenatal checkup",
+      "Start looking into maternity wear",
+      "Begin a daily prenatal yoga routine"
+    ]
   },
   {
     week: 24,
@@ -57,7 +62,12 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         description: "Substantial and healthy!",
         reasoning: "The eggplant is a classic comparison for week 24 because its weight and length closely mirror a developing fetus at this milestone."
       }
-    }
+    },
+    nextActions: [
+      "Book your glucose tolerance test",
+      "Start moisturizing your growing belly",
+      "Research local pediatricians"
+    ]
   },
   {
     week: 36,
@@ -86,7 +96,12 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         description: "A big harvest is coming!",
         reasoning: "The large pumpkin represents the final growth spurt. Your baby is now heavy and substantial, just like a harvest-ready pumpkin."
       }
-    }
+    },
+    nextActions: [
+      "Finalize your birth plan",
+      "Install the baby car seat",
+      "Prepare some freezer-friendly meals"
+    ]
   }
 ];
 
@@ -96,35 +111,60 @@ export const BABY_UPDATES: BabyUpdate[] = [
     title: "The Fourth Trimester",
     description: "Your baby is adjusting to life outside the womb. Lots of sleep and skin-to-skin contact.",
     milestones: ["Briefly lifting head", "Focusing on faces", "Startling at loud noises"],
-    tips: ["Sleep when baby sleeps", "Accept help from others", "Keep track of wet diapers"]
+    tips: ["Sleep when baby sleeps", "Accept help from others", "Keep track of wet diapers"],
+    nextActions: [
+      "Schedule your 1-month pediatrician visit",
+      "Start tummy time for 1-2 minutes",
+      "Take lots of photos of those tiny hands!"
+    ]
   },
   {
     month: 3,
     title: "Smiles and Coos",
     description: "Your baby is becoming more social and starting to show their personality.",
     milestones: ["Social smiling", "Supporting head firmly", "Opening and closing hands"],
-    tips: ["Talk and sing to your baby", "Introduce more floor play", "Establish a bedtime routine"]
+    tips: ["Talk and sing to your baby", "Introduce more floor play", "Establish a bedtime routine"],
+    nextActions: [
+      "Check baby's vaccine schedule",
+      "Introduce a soft toy for grasping",
+      "Plan a short outing for some fresh air"
+    ]
   },
   {
     month: 6,
     title: "Starting Solids",
     description: "Baby is becoming more active and might be ready for their first tastes of food.",
     milestones: ["Sitting with support", "Rolling both ways", "Babbling consonant sounds"],
-    tips: ["Introduce one food at a time", "Encourage tummy time", "Read books together"]
+    tips: ["Introduce one food at a time", "Encourage tummy time", "Read books together"],
+    nextActions: [
+      "Start introducing pureed vegetables",
+      "Baby-proof the low cabinets",
+      "Get a high chair ready"
+    ]
   },
   {
     month: 9,
     title: "On the Move",
     description: "Baby is exploring their world more actively, often by crawling or scooting.",
     milestones: ["Crawling", "Pulling to stand", "Using pincer grasp"],
-    tips: ["Baby-proof your home", "Play hide-and-seek", "Offer finger foods"]
+    tips: ["Baby-proof your home", "Play hide-and-seek", "Offer finger foods"],
+    nextActions: [
+      "Lower the crib mattress",
+      "Introduce a variety of textures in food",
+      "Start a simple 'no' and 'yes' game"
+    ]
   },
   {
     month: 12,
     title: "First Steps",
     description: "A major milestone year! Your baby is transitioning into toddlerhood.",
     milestones: ["Standing alone", "Taking first steps", "Saying 'mama' or 'dada'"],
-    tips: ["Celebrate the first birthday!", "Encourage independent play", "Switch to a cup"]
+    tips: ["Celebrate the first birthday!", "Encourage independent play", "Switch to a cup"],
+    nextActions: [
+      "Plan the first birthday party!",
+      "Transition to whole milk (if recommended)",
+      "Get baby's first pair of walking shoes"
+    ]
   }
 ];
 
@@ -182,13 +222,25 @@ export const NUTRITION_TIPS: NutritionTip[] = [
     id: '1',
     title: 'Iron-Rich Foods',
     content: 'Iron is crucial for your blood supply and baby\'s development.',
-    mealSuggestion: 'Spinach and lentil soup with a squeeze of lemon for better absorption.'
+    mealSuggestion: 'Spinach and lentil soup with a squeeze of lemon for better absorption.',
+    benefits: [
+      "Prevents anemia",
+      "Supports baby's brain development",
+      "Reduces fatigue"
+    ],
+    nutrients: ["Iron", "Vitamin C", "Folate"]
   },
   {
     id: '2',
     title: 'Healthy Fats',
     content: 'DHA is essential for baby\'s brain and eye development.',
-    mealSuggestion: 'Grilled salmon with avocado salad.'
+    mealSuggestion: 'Grilled salmon with avocado salad.',
+    benefits: [
+      "Brain development",
+      "Eye health",
+      "Reduces risk of preterm birth"
+    ],
+    nutrients: ["Omega-3", "DHA", "Vitamin D"]
   }
 ];
 
@@ -367,5 +419,122 @@ export const PELVIC_FLOOR_EXERCISES: PostpartumRecovery[] = [
       "Lower back pain",
       "Pelvic pressure"
     ]
+  }
+];
+
+export const HOSPITALS: Hospital[] = [
+  {
+    id: 'h1',
+    name: 'St. Mary\'s Maternity Hospital',
+    address: '123 Health Ave, Lagos, Nigeria',
+    distance: '0.8 km',
+    distanceValue: 0.8,
+    phone: '+234 801 234 5678',
+    type: 'Maternity Specialist',
+    isOpen: true,
+    availabilityStatus: '24/7 Emergency',
+    isMaternalCare: true,
+    isEmergencyCare: true,
+    isRecommended: true,
+    openingHours: 'Open 24 hours',
+    services: ['Antenatal Care', 'Delivery', 'Postnatal Care', 'NICU', 'Emergency Surgery'],
+    description: 'Recommended for antenatal and emergency maternal care. Specialized in high-risk pregnancies.',
+    lat: 6.5244,
+    lng: 3.3792
+  },
+  {
+    id: 'h2',
+    name: 'City General Hospital',
+    address: '456 Main St, Lagos, Nigeria',
+    distance: '1.5 km',
+    distanceValue: 1.5,
+    phone: '+234 802 345 6789',
+    type: 'General Hospital',
+    isOpen: true,
+    availabilityStatus: 'Open Now',
+    isMaternalCare: true,
+    isEmergencyCare: true,
+    isRecommended: false,
+    openingHours: 'Open 24 hours',
+    services: ['General Medicine', 'Maternity Ward', 'Pediatrics', 'Emergency Room'],
+    description: 'A large public hospital with a dedicated maternity wing and 24/7 emergency services.',
+    lat: 6.5300,
+    lng: 3.3850
+  },
+  {
+    id: 'h3',
+    name: 'Mother & Child Care Center',
+    address: '789 Family Way, Lagos, Nigeria',
+    distance: '2.2 km',
+    distanceValue: 2.2,
+    phone: '+234 803 456 7890',
+    type: 'Specialized Clinic',
+    isOpen: false,
+    availabilityStatus: 'Closed - Opens 8 AM',
+    isMaternalCare: true,
+    isEmergencyCare: false,
+    isRecommended: true,
+    openingHours: '8:00 AM - 6:00 PM',
+    services: ['Immunization', 'Well-baby Checks', 'Nutritional Counseling', 'Lactation Support'],
+    description: 'Focused on postnatal care and baby wellness. Great for routine checkups.',
+    lat: 6.5150,
+    lng: 3.3700
+  },
+  {
+    id: 'h4',
+    name: 'Lagos University Teaching Hospital (LUTH)',
+    address: 'Idi-Araba, Surulere, Lagos',
+    distance: '3.5 km',
+    distanceValue: 3.5,
+    phone: '+234 804 567 8901',
+    type: 'Teaching Hospital',
+    isOpen: true,
+    availabilityStatus: '24/7 Emergency',
+    isMaternalCare: true,
+    isEmergencyCare: true,
+    isRecommended: true,
+    openingHours: 'Open 24 hours',
+    services: ['Specialized Surgery', 'Neonatology', 'Obstetrics', 'Research Center'],
+    description: 'Tertiary care center with advanced facilities for complex maternal and neonatal cases.',
+    lat: 6.5180,
+    lng: 3.3550
+  },
+  {
+    id: 'h5',
+    name: 'Graceful Birth Clinic',
+    address: '10 Victoria Island, Lagos',
+    distance: '4.1 km',
+    distanceValue: 4.1,
+    phone: '+234 805 678 9012',
+    type: 'Private Clinic',
+    isOpen: true,
+    availabilityStatus: 'Open Now',
+    isMaternalCare: true,
+    isEmergencyCare: true,
+    isRecommended: false,
+    openingHours: 'Open 24 hours',
+    services: ['Private Birthing Suites', 'Antenatal Classes', 'Doula Services'],
+    description: 'Premium birthing experience with personalized care and modern amenities.',
+    lat: 6.4281,
+    lng: 3.4219
+  },
+  {
+    id: 'h6',
+    name: 'Hope Community Health Center',
+    address: '22 Market Rd, Lagos',
+    distance: '5.0 km',
+    distanceValue: 5.0,
+    phone: '+234 806 789 0123',
+    type: 'Community Clinic',
+    isOpen: true,
+    availabilityStatus: 'Open Now',
+    isMaternalCare: true,
+    isEmergencyCare: false,
+    isRecommended: false,
+    openingHours: '7:00 AM - 9:00 PM',
+    services: ['Primary Care', 'Maternal Health Education', 'Family Planning'],
+    description: 'Affordable community-focused health center providing essential maternal support.',
+    lat: 6.5400,
+    lng: 3.4000
   }
 ];
