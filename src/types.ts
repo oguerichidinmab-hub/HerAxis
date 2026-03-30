@@ -26,9 +26,9 @@ export interface PregnancyUpdate {
   trimester: number;
   developmentDetail: string;
   fruitSize: {
-    standard: { name: string; emoji: string; description: string };
-    tropical: { name: string; emoji: string; description: string };
-    veggies: { name: string; emoji: string; description: string };
+    standard: { name: string; emoji: string; description: string; reasoning: string };
+    tropical: { name: string; emoji: string; description: string; reasoning: string };
+    veggies: { name: string; emoji: string; description: string; reasoning: string };
   };
 }
 
@@ -40,14 +40,21 @@ export interface BabyUpdate {
   tips: string[];
 }
 
+export interface Comment {
+  id: string;
+  author: string;
+  content: string;
+  timestamp: string;
+}
+
 export interface ForumPost {
   id: string;
   author: string;
   content: string;
   timestamp: string;
   likes: number;
-  comments: number;
-  category: 'Pregnancy' | 'Baby' | 'Postpartum' | 'General';
+  comments: Comment[];
+  category: 'Pregnancy questions' | 'New mom support' | 'Breastfeeding' | 'Emotional well-being' | 'Baby care' | 'Recovery after childbirth';
 }
 
 export interface NutritionTip {
@@ -55,4 +62,14 @@ export interface NutritionTip {
   title: string;
   content: string;
   mealSuggestion: string;
+}
+
+export interface PostpartumRecovery {
+  id: string;
+  title: string;
+  description: string;
+  tips: string[];
+  warningSigns: string[];
+  comments?: Comment[];
+  selfCareExercises?: string[];
 }

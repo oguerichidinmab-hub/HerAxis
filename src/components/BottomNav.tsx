@@ -9,8 +9,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'pregnancy', label: 'Pregnancy', icon: Heart },
-    { id: 'baby', label: 'Baby', icon: Baby },
+    { id: 'tracker', label: 'Tracker', icon: Baby },
     { id: 'community', label: 'Community', icon: Users },
     { id: 'support', label: 'Support', icon: LifeBuoy },
     { id: 'profile', label: 'Profile', icon: User },

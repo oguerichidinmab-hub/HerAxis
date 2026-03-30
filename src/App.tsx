@@ -3,8 +3,7 @@ import { UserProvider } from './UserContext';
 import { BottomNav } from './components/BottomNav';
 import { EmergencyButton } from './components/EmergencyButton';
 import { HomeScreen } from './components/HomeScreen';
-import { PregnancyScreen } from './components/PregnancyScreen';
-import { BabyScreen } from './components/BabyScreen';
+import { BabyTrackerScreen } from './components/BabyTrackerScreen';
 import { CommunityScreen } from './components/CommunityScreen';
 import { SupportScreen } from './components/SupportScreen';
 import { ProfileScreen } from './components/ProfileScreen';
@@ -16,8 +15,7 @@ export default function App() {
   const renderScreen = () => {
     switch (activeTab) {
       case 'home': return <HomeScreen />;
-      case 'pregnancy': return <PregnancyScreen />;
-      case 'baby': return <BabyScreen />;
+      case 'tracker': return <BabyTrackerScreen />;
       case 'community': return <CommunityScreen />;
       case 'support': return <SupportScreen />;
       case 'profile': return <ProfileScreen />;

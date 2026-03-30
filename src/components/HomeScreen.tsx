@@ -107,7 +107,7 @@ export const HomeScreen: React.FC = () => {
           </p>
           <div className="flex items-center gap-4 text-stone-400 text-xs">
             <span className="flex items-center gap-1"><Heart size={14} /> {latestPost.likes}</span>
-            <span className="flex items-center gap-1"><MessageSquare size={14} /> {latestPost.comments}</span>
+            <span className="flex items-center gap-1"><MessageSquare size={14} /> {latestPost.comments.length}</span>
           </div>
         </div>
       </section>
