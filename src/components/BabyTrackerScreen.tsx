@@ -3,9 +3,30 @@ import { useUser } from '../UserContext';
 import { PREGNANCY_UPDATES, BABY_UPDATES } from '../mockData';
 import { UserStage } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Info, CheckCircle2, ChevronRight, X, Sparkles, Baby, Star, Lightbulb } from 'lucide-react';
+import { 
+  Heart, 
+  Info, 
+  CheckCircle2, 
+  ChevronRight, 
+  ChevronLeft,
+  X, 
+  Sparkles, 
+  Baby, 
+  Star, 
+  Lightbulb,
+  Calendar,
+  Clock,
+  ArrowLeft,
+  BookOpen
+} from 'lucide-react';
+import { AppointmentsScreen } from './AppointmentsScreen';
+import { JournalScreen } from './JournalScreen';
 
-export const BabyTrackerScreen: React.FC = () => {
+interface BabyTrackerScreenProps {
+  onBack?: () => void;
+}
+
+export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) => {
   const { profile, updateProfile } = useUser();
   const isPregnant = profile.stage === UserStage.PREGNANT;
   
@@ -14,6 +35,9 @@ export const BabyTrackerScreen: React.FC = () => {
   const [showSizeReasoning, setShowSizeReasoning] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [selectedTrimester, setSelectedTrimester] = useState<number | null>(null);
+  const [showAppointments, setShowAppointments] = useState(false);
+  const [showFruitChart, setShowFruitChart] = useState(false);
+  const [showJournal, setShowJournal] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([
     { id: 1, author: 'Mama Sarah', text: 'Week 24 is so exciting! I can finally feel the kicks clearly.', time: '1h ago' },
@@ -51,8 +75,143 @@ export const BabyTrackerScreen: React.FC = () => {
     }
   ];
 
+  if (showAppointments) {
+    return <AppointmentsScreen onBack={() => setShowAppointments(false)} />;
+  }
+
+  if (showJournal) {
+    return <JournalScreen onBack={() => setShowJournal(false)} />;
+  }
+
+  const renderFruitChart = () => (
+    <div className="min-h-screen bg-stone-50 pb-20">
+      <header className="bg-white border-b border-stone-200 sticky top-0 z-10 px-4 py-4 flex items-center gap-4">
+        <button 
+          onClick={() => setShowFruitChart(false)}
+          className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-stone-600" />
+        </button>
+        <h1 className="text-xl font-semibold text-stone-800">Pregnancy Fruit Chart</h1>
+      </header>
+
+      <div className="p-4 space-y-4">
+        <div className="bg-white p-6 rounded-[2rem] border border-stone-100 shadow-sm mb-6">
+          <p className="text-sm text-stone-500 leading-relaxed">
+            Track your baby's growth week by week with our interactive fruit chart. Choose your favorite theme to see different comparisons!
+          </p>
+          <div className="flex gap-2 mt-4">
+            {(['standard', 'tropical', 'veggies'] as const).map((theme) => (
+              <button
+                key={theme}
+                onClick={() => updateProfile({ preferences: { ...profile.preferences, fruitTheme: theme } })}
+                className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all ${
+                  fruitTheme === theme 
+                    ? 'bg-pink-600 text-white shadow-md' 
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                {theme}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {PREGNANCY_UPDATES.map((update) => {
+            const fruit = update.fruitSize[fruitTheme];
+            const isCurrent = update.week === currentVal;
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={`week-${update.week}`}
+                className={`p-5 rounded-[2rem] border transition-all flex items-center gap-4 ${
+                  isCurrent 
+                    ? 'bg-pink-50 border-pink-200 ring-2 ring-pink-500 ring-offset-2' 
+                    : 'bg-white border-stone-100'
+                }`}
+              >
+                <div className="text-4xl w-16 h-16 bg-stone-50 rounded-2xl flex items-center justify-center shrink-0">
+                  {fruit.emoji}
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] font-bold text-pink-600 uppercase tracking-widest">Week {update.week}</p>
+                      <h4 className="font-bold text-stone-800">Size of a {fruit.name}</h4>
+                    </div>
+                    {isCurrent && (
+                      <span className="bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Current</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-stone-500 mt-1">{fruit.description}</p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (showFruitChart) {
+    return renderFruitChart();
+  }
+
   const renderPregnancyTracker = () => (
     <div className="space-y-6">
+      {/* Appointments Quick Access */}
+      <section className="px-4 flex gap-3">
+        <button 
+          onClick={() => setShowAppointments(true)}
+          className="flex-1 bg-rose-500 p-4 rounded-[2rem] text-white shadow-lg shadow-rose-500/20 flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Next Appointment</p>
+              {(() => {
+                const upcoming = (profile.appointments || []).filter(a => {
+                  const today = new Date();
+                  today.setHours(0,0,0,0);
+                  return new Date(a.date) >= today;
+                }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+                if (upcoming.length === 0) return <h3 className="font-bold">No upcoming visits</h3>;
+                const next = upcoming[0];
+                return (
+                  <h3 className="font-bold truncate max-w-[120px]">
+                    {new Date(next.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </h3>
+                );
+              })()}
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform" />
+        </button>
+
+        <button 
+          onClick={() => setShowJournal(true)}
+          className="flex-1 bg-pink-600 p-4 rounded-[2rem] text-white shadow-lg shadow-pink-500/20 flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Journal</p>
+              <h3 className="font-bold">
+                {profile.journalEntries?.length || 0} Entries
+              </h3>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform" />
+        </button>
+      </section>
+
       {/* Trimester Progress */}
       <section className="px-4">
         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-stone-100">
@@ -105,15 +264,21 @@ export const BabyTrackerScreen: React.FC = () => {
           </div>
         </motion.div>
         
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowThemeSelector(true);
-          }}
-          className="absolute top-4 right-8 p-2 bg-pink-50 text-pink-600 rounded-full shadow-sm hover:bg-pink-100 transition-colors"
-        >
-          <Sparkles size={16} />
-        </button>
+        <div className="flex gap-2 mt-3">
+          <button 
+            onClick={() => setShowFruitChart(true)}
+            className="flex-1 bg-white border border-stone-100 py-3 rounded-2xl text-xs font-bold text-stone-600 hover:bg-stone-50 transition-colors flex items-center justify-center gap-2"
+          >
+            <Calendar size={14} className="text-pink-500" />
+            View Full Fruit Chart
+          </button>
+          <button 
+            onClick={() => setShowThemeSelector(true)}
+            className="p-3 bg-pink-50 text-pink-600 rounded-2xl shadow-sm hover:bg-pink-100 transition-colors"
+          >
+            <Sparkles size={16} />
+          </button>
+        </div>
       </section>
 
       {/* Weekly Update */}
@@ -141,7 +306,7 @@ export const BabyTrackerScreen: React.FC = () => {
               <h4 className="font-bold text-pink-900 mb-3">Weekly Tips</h4>
               <div className="space-y-2">
                 {pregnancyUpdate.tips.map((tip, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-pink-100">
+                  <div key={`tip-${i}`} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-pink-100">
                     <CheckCircle2 size={18} className="text-pink-500 flex-shrink-0" />
                     <p className="text-sm text-stone-700">{tip}</p>
                   </div>
@@ -230,6 +395,57 @@ export const BabyTrackerScreen: React.FC = () => {
 
   const renderBabyTracker = () => (
     <div className="space-y-6">
+      {/* Appointments & Journal Quick Access */}
+      <section className="px-4 flex gap-3">
+        <button 
+          onClick={() => setShowAppointments(true)}
+          className="flex-1 bg-blue-600 p-4 rounded-[2rem] text-white shadow-lg shadow-blue-500/20 flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Next Appointment</p>
+              {(() => {
+                const upcoming = (profile.appointments || []).filter(a => {
+                  const today = new Date();
+                  today.setHours(0,0,0,0);
+                  return new Date(a.date) >= today;
+                }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+                if (upcoming.length === 0) return <h3 className="font-bold">No upcoming visits</h3>;
+                const next = upcoming[0];
+                return (
+                  <h3 className="font-bold truncate max-w-[120px]">
+                    {new Date(next.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </h3>
+                );
+              })()}
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform" />
+        </button>
+
+        <button 
+          onClick={() => setShowJournal(true)}
+          className="flex-1 bg-indigo-600 p-4 rounded-[2rem] text-white shadow-lg shadow-indigo-500/20 flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Journal</p>
+              <h3 className="font-bold">
+                {profile.journalEntries?.length || 0} Entries
+              </h3>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform" />
+        </button>
+      </section>
+
       {/* Growth Tracker Summary */}
       <section className="px-4">
         <div className="bg-gradient-to-br from-blue-500 to-indigo-400 rounded-[2rem] p-6 text-white shadow-xl shadow-blue-100">
@@ -254,7 +470,7 @@ export const BabyTrackerScreen: React.FC = () => {
         </h3>
         <div className="space-y-3">
           {babyUpdate.milestones.map((milestone, i) => (
-            <div key={i} className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm flex items-center gap-3">
+            <div key={`milestone-${i}`} className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 font-bold text-xs">
                 {i + 1}
               </div>
@@ -275,7 +491,7 @@ export const BabyTrackerScreen: React.FC = () => {
           </div>
           <div className="space-y-3">
             {babyUpdate.tips.map((tip, i) => (
-              <div key={i} className="bg-white/60 p-4 rounded-xl border border-amber-100">
+              <div key={`tip-${i}`} className="bg-white/60 p-4 rounded-xl border border-amber-100">
                 <p className="text-sm text-amber-900 leading-relaxed">{tip}</p>
               </div>
             ))}
@@ -292,8 +508,8 @@ export const BabyTrackerScreen: React.FC = () => {
             { label: 'Sleep Support', color: 'bg-indigo-100 text-indigo-700' },
             { label: 'Parenting 101', color: 'bg-teal-100 text-teal-700' },
             { label: 'Baby Safety', color: 'bg-orange-100 text-orange-700' },
-          ].map((cat, i) => (
-            <button key={i} className={`${cat.color} p-4 rounded-2xl font-bold text-sm text-left flex justify-between items-center`}>
+          ].map((cat) => (
+            <button key={cat.label} className={`${cat.color} p-4 rounded-2xl font-bold text-sm text-left flex justify-between items-center`}>
               {cat.label}
               <ChevronRight size={16} />
             </button>
@@ -305,11 +521,21 @@ export const BabyTrackerScreen: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4">
-        <h1 className="text-3xl font-bold text-stone-900">Baby Growth Tracker</h1>
-        <p className="text-stone-500">
-          {isPregnant ? 'Tracking your baby in the womb' : 'Tracking your baby\'s development'}
-        </p>
+      <header className="pt-8 px-4 flex items-center gap-4">
+        {onBack && (
+          <button 
+            onClick={onBack}
+            className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-stone-600" />
+          </button>
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900">Baby Growth Tracker</h1>
+          <p className="text-stone-500">
+            {isPregnant ? 'Tracking your baby in the womb' : 'Tracking your baby\'s development'}
+          </p>
+        </div>
       </header>
 
       {isPregnant ? renderPregnancyTracker() : renderBabyTracker()}
@@ -416,7 +642,7 @@ export const BabyTrackerScreen: React.FC = () => {
                       <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 px-1">Key Focus Areas</h4>
                       <div className="grid grid-cols-2 gap-2">
                         {trimesterInfo.find(i => i.t === selectedTrimester)?.focus.map((item, i) => (
-                          <div key={i} className="bg-pink-50/50 p-3 rounded-xl border border-pink-100/50 flex items-center gap-2">
+                          <div key={`focus-${i}`} className="bg-pink-50/50 p-3 rounded-xl border border-pink-100/50 flex items-center gap-2">
                             <CheckCircle2 size={14} className="text-pink-500" />
                             <span className="text-xs font-medium text-pink-900">{item}</span>
                           </div>

@@ -4,6 +4,7 @@ import { PREGNANCY_UPDATES, BABY_UPDATES, NUTRITION_TIPS, FORUM_POSTS } from '..
 import { UserStage, PregnancyUpdate, BabyUpdate } from '../types';
 import { ChevronRight, Utensils, MessageSquare, Sparkles, Heart, X, CheckCircle2, AlertCircle, Info, Baby, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { LogoFull } from './Logo';
 
 export const HomeScreen: React.FC = () => {
   const { profile } = useUser();
@@ -45,7 +46,7 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4">
+      <header className="pt-8 px-4 flex justify-between items-start">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -53,6 +54,7 @@ export const HomeScreen: React.FC = () => {
           <h1 className="text-3xl font-bold text-stone-900">Hello, {profile.name}</h1>
           <p className="text-stone-500">Welcome back to HERAXIS</p>
         </motion.div>
+        <LogoFull className="scale-75 origin-top-right" />
       </header>
 
       {/* Stage Summary Card */}
@@ -217,7 +219,7 @@ export const HomeScreen: React.FC = () => {
                       </h3>
                       <div className="grid grid-cols-1 gap-2">
                         {(stageUpdate as BabyUpdate).milestones.map((milestone, i) => (
-                          <div key={i} className="flex items-center gap-3 bg-stone-50 p-4 rounded-2xl">
+                          <div key={`milestone-${i}`} className="flex items-center gap-3 bg-stone-50 p-4 rounded-2xl">
                             <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-xs font-bold shrink-0">
                               {i + 1}
                             </div>
@@ -235,7 +237,7 @@ export const HomeScreen: React.FC = () => {
                     </h3>
                     <div className="grid grid-cols-1 gap-2">
                       {stageUpdate.tips.map((tip, i) => (
-                        <div key={i} className="flex items-start gap-3 bg-stone-50 p-4 rounded-2xl">
+                        <div key={`tip-${i}`} className="flex items-start gap-3 bg-stone-50 p-4 rounded-2xl">
                           <div className="w-1.5 h-1.5 rounded-full bg-pink-400 mt-2 shrink-0" />
                           <p className="text-sm text-stone-700 leading-relaxed">{tip}</p>
                         </div>
@@ -259,7 +261,7 @@ export const HomeScreen: React.FC = () => {
                       </h3>
                       <div className="grid grid-cols-1 gap-2">
                         {stageUpdate.nextActions.map((action, i) => (
-                          <div key={i} className="flex items-center gap-3 bg-pink-50 p-4 rounded-2xl border border-pink-100">
+                          <div key={`action-${i}`} className="flex items-center gap-3 bg-pink-50 p-4 rounded-2xl border border-pink-100">
                             <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-pink-600 shadow-sm shrink-0">
                               <ChevronRight size={14} />
                             </div>
@@ -290,7 +292,7 @@ export const HomeScreen: React.FC = () => {
         </h3>
         <div className="grid grid-cols-2 gap-3">
           {stageUpdate?.tips.slice(0, 2).map((tip, i) => (
-            <div key={i} className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
+            <div key={`tip-slice-${i}`} className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
               <p className="text-sm text-stone-700 font-medium">{tip}</p>
             </div>
           ))}
@@ -560,7 +562,7 @@ export const HomeScreen: React.FC = () => {
                     <h3 className="font-bold text-stone-900">Key Benefits</h3>
                     <div className="grid grid-cols-1 gap-2">
                       {dailyNutrition.benefits.map((benefit, i) => (
-                        <div key={i} className="flex items-center gap-3 bg-orange-50 p-4 rounded-2xl">
+                        <div key={`benefit-${i}`} className="flex items-center gap-3 bg-orange-50 p-4 rounded-2xl">
                           <CheckCircle2 size={18} className="text-orange-500" />
                           <p className="text-sm text-orange-900 font-medium">{benefit}</p>
                         </div>
@@ -572,7 +574,7 @@ export const HomeScreen: React.FC = () => {
                     <h3 className="font-bold text-stone-900">Essential Nutrients</h3>
                     <div className="flex flex-wrap gap-2">
                       {dailyNutrition.nutrients.map((nutrient, i) => (
-                        <span key={i} className="bg-stone-100 px-4 py-2 rounded-full text-stone-600 text-xs font-bold">
+                        <span key={`nutrient-${i}`} className="bg-stone-100 px-4 py-2 rounded-full text-stone-600 text-xs font-bold">
                           {nutrient}
                         </span>
                       ))}

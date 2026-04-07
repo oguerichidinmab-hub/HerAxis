@@ -33,6 +33,30 @@ export interface Hospital {
   lng?: number;
 }
 
+export interface Appointment {
+  id: string;
+  title: string;
+  date: string; // ISO string
+  time: string; // HH:mm
+  type: 'pediatrician' | 'prenatal' | 'ultrasound' | 'vaccination' | 'other';
+  notes?: string;
+  reminded: boolean;
+  syncToNative?: boolean;
+  googleEventId?: string;
+}
+
+export interface JournalEntry {
+  id: string;
+  date: string; // ISO string
+  title: string;
+  content: string;
+  mood?: string;
+  symptoms?: string[];
+  week?: number;
+  month?: number;
+  photos?: string[];
+}
+
 export interface UserProfile {
   name: string;
   stage: UserStage;
@@ -41,11 +65,14 @@ export interface UserProfile {
   babyBirthDate?: string;
   babyName?: string;
   doctorContact?: DoctorContact;
+  appointments?: Appointment[];
+  journalEntries?: JournalEntry[];
   preferences: {
     largeText: boolean;
     simpleUI: boolean;
     voiceGuidance: boolean;
     fruitTheme: 'standard' | 'tropical' | 'veggies';
+    googleSyncEnabled: boolean;
   };
 }
 

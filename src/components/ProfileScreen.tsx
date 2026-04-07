@@ -4,19 +4,38 @@ import { UserStage } from '../types';
 import { 
   Settings, Bell, Shield, Accessibility, LogOut, ChevronRight, 
   Volume2, Type, Layout, Sparkles, Calendar, Baby, Edit3, Check,
-  UserCircle
+  UserCircle, ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-export const ProfileScreen: React.FC = () => {
-  const { profile, updateProfile, togglePreference } = useUser();
+interface ProfileScreenProps {
+  onBack?: () => void;
+}
+
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
+  const { profile, updateProfile, togglePreference, logout } = useUser();
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingBabyName, setIsEditingBabyName] = useState(false);
   const [isEditingDueDate, setIsEditingDueDate] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setShowLogoutConfirm(false);
+    if (onBack) onBack();
+  };
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4 text-center">
+      <header className="pt-8 px-4 relative">
+        {onBack && (
+          <button 
+            onClick={onBack}
+            className="absolute top-8 left-4 p-2 hover:bg-stone-100 rounded-full transition-colors z-10"
+          >
+            <ArrowLeft className="w-6 h-6 text-stone-600" />
+          </button>
+        )}
         <div className="w-24 h-24 bg-pink-100 rounded-full mx-auto mb-4 flex items-center justify-center text-pink-600 text-3xl font-bold border-4 border-white shadow-lg">
           {profile.name[0]}
         </div>
@@ -301,10 +320,52 @@ export const ProfileScreen: React.FC = () => {
       </section>
 
       <section className="px-4 pt-4">
-        <button className="w-full flex items-center justify-center gap-2 text-rose-600 font-bold py-4 rounded-2xl bg-rose-50 hover:bg-rose-100 transition-colors">
+        <button 
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full flex items-center justify-center gap-2 text-rose-600 font-bold py-4 rounded-2xl bg-rose-50 hover:bg-rose-100 transition-colors"
+        >
           <LogOut size={20} /> Log Out
         </button>
       </section>
+
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center"
+            >
+              <div className="bg-rose-100 w-16 h-16 rounded-full flex items-center justify-center text-rose-600 mx-auto mb-4">
+                <LogOut size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-stone-800 mb-2">Log Out?</h2>
+              <p className="text-stone-500 mb-8">Are you sure you want to log out? Your local data will be reset.</p>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-4 rounded-2xl font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors"
+                >
+                  No, stay
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 py-4 rounded-2xl font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100"
+                >
+                  Yes, log out
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

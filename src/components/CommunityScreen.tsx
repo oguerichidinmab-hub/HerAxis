@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { FORUM_POSTS } from '../mockData';
-import { MessageSquare, Heart, Share2, Plus, Search, X, Send, ShieldCheck, Info, Smile, Users, HeartHandshake } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Plus, Search, X, Send, ShieldCheck, Info, Smile, Users, HeartHandshake, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ForumPost } from '../types';
 import { useUser } from '../UserContext';
 
-export const CommunityScreen: React.FC = () => {
+interface CommunityScreenProps {
+  onBack?: () => void;
+}
+
+export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
   const { profile } = useUser();
   const [activeCategory, setActiveCategory] = useState('All');
   const [posts, setPosts] = useState<ForumPost[]>(FORUM_POSTS);
@@ -92,9 +96,19 @@ export const CommunityScreen: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4">
-        <h1 className="text-3xl font-bold text-stone-900">Community Space</h1>
-        <p className="text-stone-500">A safe, supportive place for mothers</p>
+      <header className="pt-8 px-4 flex items-center gap-4">
+        {onBack && (
+          <button 
+            onClick={onBack}
+            className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-stone-600" />
+          </button>
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900">Community Space</h1>
+          <p className="text-stone-500">A safe, supportive place for mothers</p>
+        </div>
       </header>
 
       {/* Welcome Note and Guidelines */}
@@ -133,7 +147,7 @@ export const CommunityScreen: React.FC = () => {
                       { icon: Users, text: 'Respect privacy' },
                       { icon: Info, text: 'Support, do not shame' }
                     ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-pink-700">
+                      <div key={`guideline-${i}`} className="flex items-center gap-2 text-xs text-pink-700">
                         <item.icon size={14} className="text-pink-400" />
                         {item.text}
                       </div>

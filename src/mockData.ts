@@ -2,6 +2,66 @@ import { PregnancyUpdate, BabyUpdate, ForumPost, NutritionTip, PostpartumRecover
 
 export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
   {
+    week: 4,
+    title: "Implantation & Early Growth",
+    description: "Your baby is a tiny ball of cells called a blastocyst, about the size of a poppy seed.",
+    tips: ["Take your prenatal vitamins", "Avoid alcohol and smoking", "Eat a balanced diet"],
+    bodyChanges: "You might experience slight spotting or cramping as the embryo implants.",
+    trimester: 1,
+    developmentDetail: "The blastocyst is splitting into two parts: one will become the embryo, and the other will become the placenta. The amniotic sac and yolk sac are also forming.",
+    fruitSize: {
+      standard: { 
+        name: "Poppy Seed", 
+        emoji: "🌱", 
+        description: "Microscopic but full of potential!",
+        reasoning: "At week 4, the embryo is about 0.04 inches long, which is roughly the size of a tiny poppy seed."
+      },
+      tropical: { 
+        name: "Chia Seed", 
+        emoji: "✨", 
+        description: "Smallest beginning of a big journey.",
+        reasoning: "A chia seed represents the microscopic scale of your baby at this earliest stage of development."
+      },
+      veggies: { 
+        name: "Mustard Seed", 
+        emoji: "🌿", 
+        description: "Faith in the smallest things.",
+        reasoning: "The mustard seed is a classic comparison for the tiny but powerful start of your baby's life."
+      }
+    },
+    nextActions: ["Confirm pregnancy with a test", "Book your first prenatal appointment", "Start a pregnancy journal"]
+  },
+  {
+    week: 8,
+    title: "Major Organs Forming",
+    description: "Your baby is now the size of a raspberry! Their heart is beating twice as fast as yours.",
+    tips: ["Manage morning sickness", "Get plenty of rest", "Stay hydrated"],
+    bodyChanges: "Your uterus is growing, and you might feel more frequent urges to urinate.",
+    trimester: 1,
+    developmentDetail: "Baby's arms and legs are growing longer, and their fingers and toes are starting to form. Their nose and upper lip are also becoming visible.",
+    fruitSize: {
+      standard: { 
+        name: "Raspberry", 
+        emoji: "🍓", 
+        description: "About 0.6 inches long.",
+        reasoning: "At week 8, your baby is about the size of a raspberry, with distinct limb buds and a beating heart."
+      },
+      tropical: { 
+        name: "Coffee Bean", 
+        emoji: "☕", 
+        description: "Small but full of life!",
+        reasoning: "A coffee bean matches the length and the slightly curved shape of the embryo at this stage."
+      },
+      veggies: { 
+        name: "Kidney Bean", 
+        emoji: "🫘", 
+        description: "The shape of things to come.",
+        reasoning: "The kidney bean is a perfect visual for the 'C' shape of the embryo as it develops its spine and limbs."
+      }
+    },
+    nextActions: ["First prenatal checkup", "Check your health insurance coverage", "Announce to close family if ready"]
+  },
+  {
     week: 12,
     title: "End of First Trimester",
     description: "Your baby is now the size of a lime! All major organs are formed.",
@@ -34,6 +94,66 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
       "Start looking into maternity wear",
       "Begin a daily prenatal yoga routine"
     ]
+  },
+  {
+    week: 16,
+    title: "Baby Can Hear You",
+    description: "Your baby is the size of an avocado! Their ears are in place and they can hear sounds.",
+    tips: ["Talk to your baby", "Monitor your weight gain", "Wear comfortable shoes"],
+    bodyChanges: "Your 'glow' might be appearing as blood flow increases. You might feel 'quickening' soon.",
+    trimester: 2,
+    developmentDetail: "Baby's eyes are moving to the front of their head, and their legs are becoming more developed. Their nervous system is starting to function.",
+    fruitSize: {
+      standard: { 
+        name: "Avocado", 
+        emoji: "🥑", 
+        description: "About 4.5 inches long.",
+        reasoning: "An avocado perfectly represents the weight and length of your baby as they start to fill out and grow stronger."
+      },
+      tropical: { 
+        name: "Pomegranate", 
+        emoji: "🍎", 
+        description: "Full of precious seeds of life.",
+        reasoning: "The pomegranate matches the size and the growing complexity of your baby's internal systems."
+      },
+      veggies: { 
+        name: "Large Onion", 
+        emoji: "🧅", 
+        description: "Layer by layer, growing stronger.",
+        reasoning: "A large onion is a great visual for the size and the 'roundness' your baby is starting to achieve."
+      }
+    },
+    nextActions: ["Second trimester screening", "Start a baby name list", "Plan a babymoon if possible"]
+  },
+  {
+    week: 20,
+    title: "Halfway There!",
+    description: "Your baby is the size of a banana! You're at the midpoint of your pregnancy.",
+    tips: ["Get an anatomy scan", "Focus on posture", "Eat iron-rich foods"],
+    bodyChanges: "Your belly button might pop out, and you're likely feeling regular movements.",
+    trimester: 2,
+    developmentDetail: "Baby is swallowing amniotic fluid and their taste buds are developing. They are covered in a waxy coating called vernix caseosa to protect their skin.",
+    fruitSize: {
+      standard: { 
+        name: "Banana", 
+        emoji: "🍌", 
+        description: "About 6.5 inches long (head to bottom).",
+        reasoning: "A banana is the classic comparison for week 20 because it matches the length of your baby from head to bottom."
+      },
+      tropical: { 
+        name: "Mango", 
+        emoji: "🥭", 
+        description: "Sweet milestone!",
+        reasoning: "A large mango represents the weight and the 'substantial' feel of your baby at the halfway mark."
+      },
+      veggies: { 
+        name: "Sweet Potato", 
+        emoji: "🍠", 
+        description: "Nourishing and growing.",
+        reasoning: "The sweet potato matches the length and the slightly curved posture of your baby in the womb."
+      }
+    },
+    nextActions: ["Anatomy ultrasound", "Register for baby gifts", "Start pelvic floor exercises"]
   },
   {
     week: 24,
@@ -70,6 +190,66 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
     ]
   },
   {
+    week: 28,
+    title: "Third Trimester Begins",
+    description: "Your baby is the size of a large eggplant! Their eyes can open and close.",
+    tips: ["Monitor baby's kicks", "Check for gestational diabetes", "Sleep on your side"],
+    bodyChanges: "You might experience leg cramps, heartburn, or shortness of breath.",
+    trimester: 3,
+    developmentDetail: "Baby's brain is developing rapidly, and they are starting to dream! Their eyelashes are growing, and they are gaining more fat to keep warm after birth.",
+    fruitSize: {
+      standard: { 
+        name: "Large Eggplant", 
+        emoji: "🍆", 
+        description: "About 14.8 inches long.",
+        reasoning: "A large eggplant represents the length and the increasing weight of your baby as they enter the final trimester."
+      },
+      tropical: { 
+        name: "Dragon Fruit", 
+        emoji: "🐉", 
+        description: "Exotic and growing fast.",
+        reasoning: "The dragon fruit matches the weight and the 'vibrant' energy of your baby's brain development."
+      },
+      veggies: { 
+        name: "Head of Cauliflower", 
+        emoji: "🥦", 
+        description: "Complex and beautiful.",
+        reasoning: "A head of cauliflower is a great visual for the size and the 'brain-like' complexity of your baby's development right now."
+      }
+    },
+    nextActions: ["Start kick counts", "Take a breastfeeding class", "Wash baby clothes and bedding"]
+  },
+  {
+    week: 32,
+    title: "Practicing Breathing",
+    description: "Your baby is the size of a squash! They are practicing breathing and swallowing.",
+    tips: ["Pack your hospital bag", "Do perineal massage", "Stay active but rest"],
+    bodyChanges: "You might feel 'Braxton Hicks' contractions as your body prepares for labor.",
+    trimester: 3,
+    developmentDetail: "Baby is taking up most of the space in your uterus. Their bones are fully formed but still soft and flexible. They are practicing their sucking reflex.",
+    fruitSize: {
+      standard: { 
+        name: "Squash", 
+        emoji: "🎃", 
+        description: "About 16.7 inches long.",
+        reasoning: "A large squash matches the length and the 'solid' feel of your baby as they continue to gain weight."
+      },
+      tropical: { 
+        name: "Coconut", 
+        emoji: "🥥", 
+        description: "Strong and protected.",
+        reasoning: "A coconut represents the weight and the 'hard' skull that is protecting your baby's rapidly growing brain."
+      },
+      veggies: { 
+        name: "Large Cabbage", 
+        emoji: "🥬", 
+        description: "Full of layers and life.",
+        reasoning: "A large cabbage is a perfect visual for the size and the 'compact' weight of your baby at week 32."
+      }
+    },
+    nextActions: ["Finalize your hospital bag", "Install the car seat", "Discuss birth preferences with your doctor"]
+  },
+  {
     week: 36,
     title: "Getting Ready",
     description: "Baby is gaining weight rapidly and getting into position for birth.",
@@ -102,6 +282,36 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
       "Install the baby car seat",
       "Prepare some freezer-friendly meals"
     ]
+  },
+  {
+    week: 40,
+    title: "Due Date Week",
+    description: "Your baby is the size of a watermelon! They are fully developed and ready to meet you.",
+    tips: ["Stay calm and patient", "Watch for labor signs", "Keep moving gently"],
+    bodyChanges: "You might lose your mucus plug or experience your water breaking.",
+    trimester: 3,
+    developmentDetail: "Baby is ready! Their lungs are fully matured, and they have enough fat to regulate their temperature. They are waiting for the right moment to make their entrance.",
+    fruitSize: {
+      standard: { 
+        name: "Watermelon", 
+        emoji: "🍉", 
+        description: "About 20 inches long and weighs about 7.5 pounds.",
+        reasoning: "A watermelon is the ultimate comparison for a full-term baby, representing the full weight and size of your new arrival."
+      },
+      tropical: { 
+        name: "Jackfruit", 
+        emoji: "🍈", 
+        description: "The grand finale!",
+        reasoning: "A jackfruit represents the maximum size and weight your baby will reach before birth."
+      },
+      veggies: { 
+        name: "Giant Squash", 
+        emoji: "🎃", 
+        description: "Ready for the big day.",
+        reasoning: "A giant squash captures the substantial size and the 'ready-to-be-born' feel of your baby at 40 weeks."
+      }
+    },
+    nextActions: ["Go to the hospital when labor starts", "Trust your body", "Welcome your baby!"]
   }
 ];
 

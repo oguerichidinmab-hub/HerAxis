@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Brain, Sparkles, ShieldCheck, ChevronRight, X, AlertCircle, CheckCircle2, Activity, MessageSquare, Send, UserCircle, Copy, Check, Phone, MessageCircle, Mail, MapPin } from 'lucide-react';
+import { Heart, Brain, Sparkles, ShieldCheck, ChevronRight, X, AlertCircle, CheckCircle2, Activity, MessageSquare, Send, UserCircle, Copy, Check, Phone, MessageCircle, Mail, MapPin, ArrowLeft } from 'lucide-react';
 import { POSTPARTUM_RECOVERY, POSTPARTUM_MENTAL_HEALTH, PELVIC_FLOOR_EXERCISES } from '../mockData';
 import { PostpartumRecovery, Comment, UserStage } from '../types';
 import { useUser } from '../UserContext';
 import { HospitalListModal } from './HospitalListModal';
 
-export const SupportScreen: React.FC = () => {
+interface SupportScreenProps {
+  onBack?: () => void;
+}
+
+export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
   const { profile, updateProfile } = useUser();
   const [activeView, setActiveView] = useState<'hub' | 'recovery' | 'mental-health' | 'doctor' | 'hospital' | 'doula' | 'pelvic'>('hub');
   const [selectedRecovery, setSelectedRecovery] = useState<PostpartumRecovery | null>(null);
@@ -186,8 +190,16 @@ export const SupportScreen: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4 flex items-center justify-between">
-        <div>
+      <header className="pt-8 px-4 flex items-center gap-4">
+        {onBack && (
+          <button 
+            onClick={onBack}
+            className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-stone-600" />
+          </button>
+        )}
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-stone-900">Support Hub</h1>
           <p className="text-stone-500">Care for your mind and body</p>
         </div>
@@ -569,7 +581,7 @@ export const SupportScreen: React.FC = () => {
                       <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 px-1">Self-Care Exercises</h4>
                       <div className="space-y-2">
                         {selectedRecovery.selfCareExercises.map((exercise, i) => (
-                          <div key={i} className="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex items-start gap-3">
+                          <div key={`exercise-${i}`} className="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex items-start gap-3">
                             <Sparkles size={16} className="text-indigo-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-indigo-900">{exercise}</span>
                           </div>
@@ -582,7 +594,7 @@ export const SupportScreen: React.FC = () => {
                     <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 px-1">Key Tips</h4>
                     <div className="space-y-2">
                       {selectedRecovery.tips.map((tip, i) => (
-                        <div key={i} className={`${colorClasses[modalColor].modalBg} p-3 rounded-xl border ${colorClasses[modalColor].modalBorder} flex items-start gap-3`}>
+                        <div key={`tip-${i}`} className={`${colorClasses[modalColor].modalBg} p-3 rounded-xl border ${colorClasses[modalColor].modalBorder} flex items-start gap-3`}>
                           <CheckCircle2 size={16} className={`${colorClasses[modalColor].icon} mt-0.5 flex-shrink-0`} />
                           <span className={`text-sm ${colorClasses[modalColor].text}`}>{tip}</span>
                         </div>
@@ -596,7 +608,7 @@ export const SupportScreen: React.FC = () => {
                     </h4>
                     <ul className="space-y-2">
                       {selectedRecovery.warningSigns.map((sign, i) => (
-                        <li key={i} className="text-xs text-rose-800 flex items-start gap-2">
+                        <li key={`sign-${i}`} className="text-xs text-rose-800 flex items-start gap-2">
                           <span className="w-1 h-1 bg-rose-400 rounded-full mt-1.5 flex-shrink-0" />
                           {sign}
                         </li>
@@ -697,7 +709,7 @@ export const SupportScreen: React.FC = () => {
                     <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider">How they support you:</h4>
                     <ul className="space-y-2">
                       {['Emotional encouragement and reassurance', 'Guidance for teenage and new mothers', 'Postpartum recovery and newborn care advice', 'Physical comfort measures during labor'].map((item, i) => (
-                        <li key={i} className="text-xs text-stone-600 flex items-start gap-2">
+                        <li key={`doula-support-${i}`} className="text-xs text-stone-600 flex items-start gap-2">
                           <CheckCircle2 size={14} className="text-stone-400 mt-0.5 flex-shrink-0" />
                           {item}
                         </li>
@@ -780,7 +792,7 @@ export const SupportScreen: React.FC = () => {
                     <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">Why speak to them?</h4>
                     <ul className="space-y-2">
                       {['Safe space to share feelings', 'Shared lived experiences', 'Practical tips from fellow mothers', 'Reduced feelings of isolation'].map((item, i) => (
-                        <li key={i} className="text-xs text-indigo-600 flex items-start gap-2">
+                        <li key={`peer-support-${i}`} className="text-xs text-indigo-600 flex items-start gap-2">
                           <CheckCircle2 size={14} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                           {item}
                         </li>

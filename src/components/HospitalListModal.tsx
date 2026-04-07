@@ -390,7 +390,7 @@ export const HospitalListModal: React.FC<HospitalListModalProps> = ({ isOpen, on
                         <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider px-1">Services Offered</h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedHospital.services.map((service, i) => (
-                            <span key={i} className="bg-pink-50 text-pink-600 px-4 py-2 rounded-xl text-xs font-bold">
+                            <span key={`service-${i}`} className="bg-pink-50 text-pink-600 px-4 py-2 rounded-xl text-xs font-bold">
                               {service}
                             </span>
                           ))}
