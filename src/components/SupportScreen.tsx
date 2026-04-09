@@ -5,13 +5,15 @@ import { POSTPARTUM_RECOVERY, POSTPARTUM_MENTAL_HEALTH, PELVIC_FLOOR_EXERCISES }
 import { PostpartumRecovery, Comment, UserStage } from '../types';
 import { useUser } from '../UserContext';
 import { HospitalListModal } from './HospitalListModal';
+import { db } from '../firebase';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 
 interface SupportScreenProps {
   onBack?: () => void;
 }
 
 export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
-  const { profile, updateProfile } = useUser();
+  const { profile, updateProfile, user } = useUser();
   const [activeView, setActiveView] = useState<'hub' | 'recovery' | 'mental-health' | 'doctor' | 'hospital' | 'doula' | 'pelvic'>('hub');
   const [selectedRecovery, setSelectedRecovery] = useState<PostpartumRecovery | null>(null);
   const [showPeerModal, setShowPeerModal] = useState(false);
@@ -65,16 +67,31 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
     setShowEmergencyModal(false);
     setShowDoctorActions(false);
   };
-  const [mentalHealthComments, setMentalHealthComments] = useState<Record<string, Comment[]>>(() => {
-    const initialComments: Record<string, Comment[]> = {};
-    POSTPARTUM_MENTAL_HEALTH.forEach(item => {
-      if (item.comments) {
-        initialComments[item.id] = item.comments;
-      }
-    });
-    return initialComments;
-  });
+  const [mentalHealthComments, setMentalHealthComments] = useState<Record<string, Comment[]>>({});
   const [newComment, setNewComment] = useState('');
+
+  // Fetch comments for all mental health items
+  React.useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    POSTPARTUM_MENTAL_HEALTH.forEach(item => {
+      const q = query(collection(db, 'recovery_comments', item.id, 'comments'), orderBy('timestamp', 'asc'));
+      const unsub = onSnapshot(q, (snap) => {
+        const fetchedComments = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            ...data,
+            timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : 'Just now'
+          } as Comment;
+        });
+        setMentalHealthComments(prev => ({ ...prev, [item.id]: fetchedComments }));
+      });
+      unsubscribes.push(unsub);
+    });
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, []);
 
   const getIcon = (id: string) => {
     switch (id) {
@@ -96,21 +113,20 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
     setModalColor(color);
   };
 
-  const handleAddComment = (id: string) => {
-    if (!newComment.trim()) return;
+  const handleAddComment = async (id: string) => {
+    if (!newComment.trim() || !user) return;
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      author: profile.name || 'Mama',
-      content: newComment,
-      timestamp: 'Just now'
-    };
-
-    setMentalHealthComments(prev => ({
-      ...prev,
-      [id]: [...(prev[id] || []), comment]
-    }));
-    setNewComment('');
+    try {
+      await addDoc(collection(db, 'recovery_comments', id, 'comments'), {
+        author: profile.name || 'Mama',
+        authorId: user.uid,
+        content: newComment,
+        timestamp: serverTimestamp()
+      });
+      setNewComment('');
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
   };
 
   const colorClasses = {

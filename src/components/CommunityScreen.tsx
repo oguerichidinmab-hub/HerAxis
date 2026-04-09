@@ -1,24 +1,66 @@
-import React, { useState } from 'react';
-import { FORUM_POSTS } from '../mockData';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, Heart, Share2, Plus, Search, X, Send, ShieldCheck, Info, Smile, Users, HeartHandshake, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ForumPost } from '../types';
+import { ForumPost, Comment } from '../types';
 import { useUser } from '../UserContext';
+import { db } from '../firebase';
+import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, increment, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 interface CommunityScreenProps {
   onBack?: () => void;
 }
 
 export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
-  const { profile } = useUser();
+  const { profile, user } = useUser();
   const [activeCategory, setActiveCategory] = useState('All');
-  const [posts, setPosts] = useState<ForumPost[]>(FORUM_POSTS);
+  const [posts, setPosts] = useState<ForumPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
+  const [postComments, setPostComments] = useState<Comment[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostCategory, setNewPostCategory] = useState('Pregnancy questions');
   const [newComment, setNewComment] = useState('');
   const [showGuidelines, setShowGuidelines] = useState(false);
+
+  // Fetch Posts
+  useEffect(() => {
+    const q = query(collection(db, 'forum_posts'), orderBy('timestamp', 'desc'));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const fetchedPosts = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : 'Just now',
+          comments: [] // Comments fetched separately when selected
+        } as ForumPost;
+      });
+      setPosts(fetchedPosts);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Fetch Comments for Selected Post
+  useEffect(() => {
+    if (!selectedPost) {
+      setPostComments([]);
+      return;
+    }
+
+    const q = query(collection(db, 'forum_posts', selectedPost.id, 'comments'), orderBy('timestamp', 'asc'));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const fetchedComments = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : 'Just now'
+        } as Comment;
+      });
+      setPostComments(fetchedComments);
+    });
+    return unsubscribe;
+  }, [selectedPost]);
 
   const categories = [
     'All', 
@@ -34,63 +76,48 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
     ? posts 
     : posts.filter(p => p.category === activeCategory);
 
-  const handleCreatePost = () => {
-    if (!newPostContent.trim()) return;
+  const handleCreatePost = async () => {
+    if (!newPostContent.trim() || !user) return;
     
-    const newPost: ForumPost = {
-      id: Date.now().toString(),
-      author: profile.name || 'Anonymous',
-      content: newPostContent,
-      timestamp: 'Just now',
-      likes: 0,
-      comments: [],
-      category: newPostCategory as any
-    };
-
-    setPosts([newPost, ...posts]);
-    setNewPostContent('');
-    setShowCreateModal(false);
-  };
-
-  const handleAddComment = (postId: string) => {
-    if (!newComment.trim()) return;
-
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        const comment = {
-          id: Date.now().toString(),
-          author: profile.name || 'Anonymous',
-          content: newComment,
-          timestamp: 'Just now'
-        };
-        return {
-          ...post,
-          comments: [...post.comments, comment]
-        };
-      }
-      return post;
-    });
-
-    setPosts(updatedPosts);
-    
-    // Update selected post if it's open
-    if (selectedPost?.id === postId) {
-      setSelectedPost(updatedPosts.find(p => p.id === postId) || null);
+    try {
+      await addDoc(collection(db, 'forum_posts'), {
+        author: profile.name || 'Anonymous',
+        authorId: user.uid,
+        content: newPostContent,
+        timestamp: serverTimestamp(),
+        likes: 0,
+        category: newPostCategory
+      });
+      setNewPostContent('');
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error("Error creating post:", error);
     }
-    
-    setNewComment('');
   };
 
-  const handleLikePost = (postId: string) => {
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        return { ...post, likes: post.likes + 1 };
-      }
-      return post;
-    });
-    setPosts(updatedPosts);
-    if (selectedPost?.id === postId) {
-      setSelectedPost(updatedPosts.find(p => p.id === postId) || null);
+  const handleAddComment = async (postId: string) => {
+    if (!newComment.trim() || !user) return;
+
+    try {
+      await addDoc(collection(db, 'forum_posts', postId, 'comments'), {
+        author: profile.name || 'Anonymous',
+        authorId: user.uid,
+        content: newComment,
+        timestamp: serverTimestamp()
+      });
+      setNewComment('');
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
+
+  const handleLikePost = async (postId: string) => {
+    try {
+      await updateDoc(doc(db, 'forum_posts', postId), {
+        likes: increment(1)
+      });
+    } catch (error) {
+      console.error("Error liking post:", error);
     }
   };
 
@@ -232,7 +259,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
                     <span className="font-medium">{post.likes > 0 ? 'Support' : 'Support'} {post.likes > 0 && post.likes}</span>
                   </button>
                   <div className="flex items-center gap-1.5 text-stone-400 text-xs">
-                    <MessageSquare size={16} /> {post.comments.length}
+                    <MessageSquare size={16} /> {post.comments?.length || 0}
                   </div>
                 </div>
                 <button 
@@ -321,11 +348,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
                 <div className="border-t border-stone-100 pt-6 space-y-6">
                   <h4 className="font-bold text-stone-800 flex items-center gap-2">
                     <MessageSquare size={18} className="text-pink-500" />
-                    Comments ({selectedPost.comments.length})
+                    Comments ({postComments.length})
                   </h4>
 
                   <div className="space-y-4">
-                    {selectedPost.comments.map((comment) => (
+                    {postComments.map((comment) => (
                       <div key={comment.id} className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-bold text-sm text-stone-900">{comment.author}</span>
@@ -334,7 +361,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
                         <p className="text-sm text-stone-600 leading-relaxed">{comment.content}</p>
                       </div>
                     ))}
-                    {selectedPost.comments.length === 0 && (
+                    {postComments.length === 0 && (
                       <p className="text-center text-stone-400 text-sm py-4">No comments yet. Be the first to reply!</p>
                     )}
                   </div>

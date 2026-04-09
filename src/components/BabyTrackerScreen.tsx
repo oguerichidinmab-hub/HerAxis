@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../UserContext';
 import { PREGNANCY_UPDATES, BABY_UPDATES } from '../mockData';
-import { UserStage } from '../types';
+import { UserStage, Comment } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, 
@@ -17,17 +17,20 @@ import {
   Calendar,
   Clock,
   ArrowLeft,
-  BookOpen
+  BookOpen,
+  Send
 } from 'lucide-react';
 import { AppointmentsScreen } from './AppointmentsScreen';
 import { JournalScreen } from './JournalScreen';
+import { db } from '../firebase';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 
 interface BabyTrackerScreenProps {
   onBack?: () => void;
 }
 
 export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) => {
-  const { profile, updateProfile } = useUser();
+  const { profile, updateProfile, user } = useUser();
   const isPregnant = profile.stage === UserStage.PREGNANT;
   
   // Pregnancy State
@@ -39,12 +42,27 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
   const [showFruitChart, setShowFruitChart] = useState(false);
   const [showJournal, setShowJournal] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState([
-    { id: 1, author: 'Mama Sarah', text: 'Week 24 is so exciting! I can finally feel the kicks clearly.', time: '1h ago' },
-    { id: 2, author: 'NewMom_Joy', text: 'The papaya comparison is so cute! My baby is growing so fast.', time: '30m ago' }
-  ]);
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const currentVal = profile.stageValue;
+
+  // Fetch Weekly Chat Comments
+  useEffect(() => {
+    const chatRef = collection(db, 'weekly_chats', `${isPregnant ? 'week' : 'month'}_${currentVal}`, 'comments');
+    const q = query(chatRef, orderBy('timestamp', 'asc'));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const fetchedComments = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : 'Just now'
+        } as Comment;
+      });
+      setComments(fetchedComments);
+    });
+    return unsubscribe;
+  }, [currentVal, isPregnant]);
   const pregnancyUpdate = PREGNANCY_UPDATES.find(u => u.week === currentVal) || PREGNANCY_UPDATES[0];
   const babyUpdate = BABY_UPDATES.find(u => u.month === currentVal) || BABY_UPDATES[0];
   
@@ -356,11 +374,14 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
               <div key={comment.id} className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-bold text-sm text-stone-900">{comment.author}</span>
-                  <span className="text-[10px] text-stone-400 uppercase tracking-wider">{comment.time}</span>
+                  <span className="text-[10px] text-stone-400 uppercase tracking-wider">{comment.timestamp}</span>
                 </div>
-                <p className="text-sm text-stone-600 leading-relaxed">{comment.text}</p>
+                <p className="text-sm text-stone-600 leading-relaxed">{comment.content}</p>
               </div>
             ))}
+            {comments.length === 0 && (
+              <p className="text-center text-stone-400 text-sm py-4">No comments yet. Start the conversation!</p>
+            )}
           </div>
 
           <div className="flex gap-2">
@@ -372,15 +393,19 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
               className="flex-1 bg-stone-50 border border-stone-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink-300 transition-colors"
             />
             <button
-              onClick={() => {
-                if (newComment.trim()) {
-                  setComments([...comments, {
-                    id: Date.now(),
-                    author: profile.name || 'Anonymous',
-                    text: newComment,
-                    time: 'Just now'
-                  }]);
-                  setNewComment('');
+              onClick={async () => {
+                if (newComment.trim() && user) {
+                  try {
+                    await addDoc(collection(db, 'weekly_chats', `${isPregnant ? 'week' : 'month'}_${currentVal}`, 'comments'), {
+                      author: profile.name || 'Anonymous',
+                      authorId: user.uid,
+                      content: newComment,
+                      timestamp: serverTimestamp()
+                    });
+                    setNewComment('');
+                  } catch (error) {
+                    console.error("Error posting comment:", error);
+                  }
                 }
               }}
               className="bg-pink-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-pink-700 transition-colors"

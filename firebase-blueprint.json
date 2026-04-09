@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and preferences",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "stage": { "type": "string", "enum": ["PREGNANT", "NEW_MOM"] },
+        "stageValue": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date" },
+        "babyBirthDate": { "type": "string", "format": "date" },
+        "babyName": { "type": "string" },
+        "doctorContact": { "$ref": "DoctorContact" },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "largeText": { "type": "boolean" },
+            "simpleUI": { "type": "boolean" },
+            "voiceGuidance": { "type": "boolean" },
+            "fruitTheme": { "type": "string", "enum": ["standard", "tropical", "veggies"] },
+            "googleSyncEnabled": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["name", "stage", "stageValue"]
+    },
+    "DoctorContact": {
+      "title": "DoctorContact",
+      "description": "Doctor contact information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "hospital": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "email": { "type": "string" },
+        "specialty": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Medical appointment",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "type": { "type": "string", "enum": ["pediatrician", "prenatal", "ultrasound", "vaccination", "other"] },
+        "notes": { "type": "string" },
+        "reminded": { "type": "boolean" },
+        "syncToNative": { "type": "boolean" },
+        "googleEventId": { "type": "string" }
+      },
+      "required": ["title", "date", "time", "type"]
+    },
+    "JournalEntry": {
+      "title": "JournalEntry",
+      "description": "Personal journal entry",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "mood": { "type": "string" },
+        "symptoms": { "type": "array", "items": { "type": "string" } },
+        "week": { "type": "number" },
+        "month": { "type": "number" },
+        "photos": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["date", "title", "content"]
+    },
+    "ForumPost": {
+      "title": "ForumPost",
+      "description": "Community discussion post",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "authorId": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "likes": { "type": "number" },
+        "category": { "type": "string" }
+      },
+      "required": ["author", "authorId", "content", "category"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Comment on a post or recovery guide",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "authorId": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["author", "authorId", "content"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "User appointments"
+    },
+    "/users/{userId}/journal_entries/{entryId}": {
+      "schema": "JournalEntry",
+      "description": "User journal entries"
+    },
+    "/forum_posts/{postId}": {
+      "schema": "ForumPost",
+      "description": "Community forum posts"
+    },
+    "/forum_posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on forum posts"
+    },
+    "/recovery_comments/{recoveryId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on postpartum recovery guides"
+    }
+  }
+}

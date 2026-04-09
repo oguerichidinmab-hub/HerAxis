@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields: name, stage, stageValue, dueDate, babyBirthDate, babyName, doctorContact, preferences
+    //
+    // Collection: forum_posts
+    // Document ID: {postId}
+    // Fields: author, authorId, content, timestamp, likes, category
+    //
+    // Collection: recovery_comments
+    // Document ID: {recoveryId}/comments/{commentId}
+    // Fields: author, authorId, content, timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorId;
+    }
+
+    function isNewDocOwner() {
+      return isAuthenticated() && request.auth.uid == request.resource.data.authorId;
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidString(field, min, max) {
+      return request.resource.data[field] is string && 
+             request.resource.data[field].size() >= min && 
+             request.resource.data[field].size() <= max;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // User profiles and their sub-collections
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /appointments/{appointmentId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /journal_entries/{entryId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Forum posts
+    match /forum_posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isNewDocOwner() && 
+                    isValidString('content', 1, 5000);
+      allow update: if isAuthenticated() && (
+        // Author can update content
+        (isDocOwner() && isNewDocOwner() && isValidString('content', 1, 5000)) ||
+        // Anyone can like (only likes field changes by 1)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+         math.abs(request.resource.data.likes - resource.data.likes) == 1)
+      );
+      allow delete: if isDocOwner();
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && isNewDocOwner() && isValidString('content', 1, 1000);
+        allow update, delete: if isDocOwner();
+      }
+    }
+
+    // Recovery comments
+    match /recovery_comments/{recoveryId}/comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isNewDocOwner() && isValidString('content', 1, 1000);
+      allow update, delete: if isDocOwner();
+    }
+  }
+}
