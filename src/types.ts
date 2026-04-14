@@ -69,7 +69,6 @@ export interface UserProfile {
   journalEntries?: JournalEntry[];
   preferences: {
     largeText: boolean;
-    simpleUI: boolean;
     voiceGuidance: boolean;
     fruitTheme: 'standard' | 'tropical' | 'veggies';
     googleSyncEnabled: boolean;
@@ -89,7 +88,13 @@ export interface PregnancyUpdate {
     tropical: { name: string; emoji: string; description: string; reasoning: string };
     veggies: { name: string; emoji: string; description: string; reasoning: string };
   };
+  realSize?: {
+    length: string;
+    weight: string;
+  };
+  foetusImageUrl?: string;
   nextActions: string[];
+  imageUrl?: string;
 }
 
 export interface BabyUpdate {
@@ -99,6 +104,7 @@ export interface BabyUpdate {
   milestones: string[];
   tips: string[];
   nextActions: string[];
+  imageUrl?: string;
 }
 
 export interface Comment {

@@ -29,7 +29,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "The mustard seed is a classic comparison for the tiny but powerful start of your baby's life."
       }
     },
-    nextActions: ["Confirm pregnancy with a test", "Book your first prenatal appointment", "Start a pregnancy journal"]
+    realSize: {
+      length: "0.04 inches (1 mm)",
+      weight: "Less than 0.04 oz (1 g)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["Confirm pregnancy with a test", "Book your first prenatal appointment", "Start a pregnancy journal"],
+    imageUrl: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 8,
@@ -59,7 +65,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "The kidney bean is a perfect visual for the 'C' shape of the embryo as it develops its spine and limbs."
       }
     },
-    nextActions: ["First prenatal checkup", "Check your health insurance coverage", "Announce to close family if ready"]
+    realSize: {
+      length: "0.6 inches (1.6 cm)",
+      weight: "0.04 oz (1 g)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["First prenatal checkup", "Check your health insurance coverage", "Announce to close family if ready"],
+    imageUrl: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 12,
@@ -89,11 +101,17 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "A Brussels sprout is a great visual for the compact but complex structure of your baby, who now has all their major organs formed."
       }
     },
+    realSize: {
+      length: "2.1 inches (5.4 cm)",
+      weight: "0.49 oz (14 g)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&q=80&w=800",
     nextActions: [
       "Schedule your next prenatal checkup",
       "Start looking into maternity wear",
       "Begin a daily prenatal yoga routine"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 16,
@@ -123,7 +141,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "A large onion is a great visual for the size and the 'roundness' your baby is starting to achieve."
       }
     },
-    nextActions: ["Second trimester screening", "Start a baby name list", "Plan a babymoon if possible"]
+    realSize: {
+      length: "4.6 inches (11.6 cm)",
+      weight: "3.5 oz (100 g)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["Second trimester screening", "Start a baby name list", "Plan a babymoon if possible"],
+    imageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 20,
@@ -153,7 +177,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "The sweet potato matches the length and the slightly curved posture of your baby in the womb."
       }
     },
-    nextActions: ["Anatomy ultrasound", "Register for baby gifts", "Start pelvic floor exercises"]
+    realSize: {
+      length: "10.1 inches (25.6 cm)",
+      weight: "10.6 oz (300 g)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["Anatomy ultrasound", "Register for baby gifts", "Start pelvic floor exercises"],
+    imageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 24,
@@ -183,11 +213,17 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "The eggplant is a classic comparison for week 24 because its weight and length closely mirror a developing fetus at this milestone."
       }
     },
+    realSize: {
+      length: "11.8 inches (30 cm)",
+      weight: "1.3 lbs (600 g)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800",
     nextActions: [
       "Book your glucose tolerance test",
       "Start moisturizing your growing belly",
       "Research local pediatricians"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 28,
@@ -217,7 +253,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "A head of cauliflower is a great visual for the size and the 'brain-like' complexity of your baby's development right now."
       }
     },
-    nextActions: ["Start kick counts", "Take a breastfeeding class", "Wash baby clothes and bedding"]
+    realSize: {
+      length: "14.8 inches (37.6 cm)",
+      weight: "2.2 lbs (1 kg)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["Start kick counts", "Take a breastfeeding class", "Wash baby clothes and bedding"],
+    imageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 32,
@@ -247,7 +289,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "A large cabbage is a perfect visual for the size and the 'compact' weight of your baby at week 32."
       }
     },
-    nextActions: ["Finalize your hospital bag", "Install the car seat", "Discuss birth preferences with your doctor"]
+    realSize: {
+      length: "16.7 inches (42.4 cm)",
+      weight: "3.75 lbs (1.7 kg)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["Finalize your hospital bag", "Install the car seat", "Discuss birth preferences with your doctor"],
+    imageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 36,
@@ -277,11 +325,17 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "The large pumpkin represents the final growth spurt. Your baby is now heavy and substantial, just like a harvest-ready pumpkin."
       }
     },
+    realSize: {
+      length: "18.6 inches (47.3 cm)",
+      weight: "5.8 lbs (2.6 kg)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800",
     nextActions: [
       "Finalize your birth plan",
       "Install the baby car seat",
       "Prepare some freezer-friendly meals"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1559734840-f9509ee5677f?auto=format&fit=crop&q=80&w=800"
   },
   {
     week: 40,
@@ -311,7 +365,13 @@ export const PREGNANCY_UPDATES: PregnancyUpdate[] = [
         reasoning: "A giant squash captures the substantial size and the 'ready-to-be-born' feel of your baby at 40 weeks."
       }
     },
-    nextActions: ["Go to the hospital when labor starts", "Trust your body", "Welcome your baby!"]
+    realSize: {
+      length: "20.2 inches (51.2 cm)",
+      weight: "7.5 lbs (3.4 kg)"
+    },
+    foetusImageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800",
+    nextActions: ["Go to the hospital when labor starts", "Trust your body", "Welcome your baby!"],
+    imageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800"
   }
 ];
 
@@ -326,7 +386,8 @@ export const BABY_UPDATES: BabyUpdate[] = [
       "Schedule your 1-month pediatrician visit",
       "Start tummy time for 1-2 minutes",
       "Take lots of photos of those tiny hands!"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1523262316637-b9c7264a2a4d?auto=format&fit=crop&q=80&w=800"
   },
   {
     month: 3,
@@ -338,7 +399,8 @@ export const BABY_UPDATES: BabyUpdate[] = [
       "Check baby's vaccine schedule",
       "Introduce a soft toy for grasping",
       "Plan a short outing for some fresh air"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=800"
   },
   {
     month: 6,
@@ -350,7 +412,8 @@ export const BABY_UPDATES: BabyUpdate[] = [
       "Start introducing pureed vegetables",
       "Baby-proof the low cabinets",
       "Get a high chair ready"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=800"
   },
   {
     month: 9,
@@ -362,7 +425,8 @@ export const BABY_UPDATES: BabyUpdate[] = [
       "Lower the crib mattress",
       "Introduce a variety of textures in food",
       "Start a simple 'no' and 'yes' game"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1510154221590-ff63e90a136f?auto=format&fit=crop&q=80&w=800"
   },
   {
     month: 12,
@@ -374,7 +438,8 @@ export const BABY_UPDATES: BabyUpdate[] = [
       "Plan the first birthday party!",
       "Transition to whole milk (if recommended)",
       "Get baby's first pair of walking shoes"
-    ]
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1513273159383-c202762264c3?auto=format&fit=crop&q=80&w=800"
   }
 ];
 

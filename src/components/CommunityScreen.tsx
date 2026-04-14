@@ -5,6 +5,7 @@ import { ForumPost, Comment } from '../types';
 import { useUser } from '../UserContext';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, increment, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreErrorHandler';
 
 interface CommunityScreenProps {
   onBack?: () => void;
@@ -24,6 +25,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
 
   // Fetch Posts
   useEffect(() => {
+    if (!user) return;
+
     const q = query(collection(db, 'forum_posts'), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       const fetchedPosts = snap.docs.map(d => {
@@ -36,17 +39,18 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
         } as ForumPost;
       });
       setPosts(fetchedPosts);
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'forum_posts'));
     return unsubscribe;
-  }, []);
+  }, [user]);
 
   // Fetch Comments for Selected Post
   useEffect(() => {
-    if (!selectedPost) {
+    if (!selectedPost || !user) {
       setPostComments([]);
       return;
     }
 
+    const path = `forum_posts/${selectedPost.id}/comments`;
     const q = query(collection(db, 'forum_posts', selectedPost.id, 'comments'), orderBy('timestamp', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       const fetchedComments = snap.docs.map(d => {
@@ -58,9 +62,9 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
         } as Comment;
       });
       setPostComments(fetchedComments);
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, path));
     return unsubscribe;
-  }, [selectedPost]);
+  }, [selectedPost, user]);
 
   const categories = [
     'All', 
@@ -91,7 +95,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
       setNewPostContent('');
       setShowCreateModal(false);
     } catch (error) {
-      console.error("Error creating post:", error);
+      handleFirestoreError(error, OperationType.WRITE, 'forum_posts');
     }
   };
 
@@ -99,6 +103,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
     if (!newComment.trim() || !user) return;
 
     try {
+      const path = `forum_posts/${postId}/comments`;
       await addDoc(collection(db, 'forum_posts', postId, 'comments'), {
         author: profile.name || 'Anonymous',
         authorId: user.uid,
@@ -107,7 +112,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
       });
       setNewComment('');
     } catch (error) {
-      console.error("Error adding comment:", error);
+      handleFirestoreError(error, OperationType.WRITE, `forum_posts/${postId}/comments`);
     }
   };
 
@@ -117,13 +122,13 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onBack }) => {
         likes: increment(1)
       });
     } catch (error) {
-      console.error("Error liking post:", error);
+      handleFirestoreError(error, OperationType.UPDATE, `forum_posts/${postId}`);
     }
   };
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4 flex items-center gap-4">
+      <header className="pt-20 px-4 flex items-center gap-4">
         {onBack && (
           <button 
             onClick={onBack}

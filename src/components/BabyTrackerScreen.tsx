@@ -24,6 +24,7 @@ import { AppointmentsScreen } from './AppointmentsScreen';
 import { JournalScreen } from './JournalScreen';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreErrorHandler';
 
 interface BabyTrackerScreenProps {
   onBack?: () => void;
@@ -41,6 +42,7 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
   const [showAppointments, setShowAppointments] = useState(false);
   const [showFruitChart, setShowFruitChart] = useState(false);
   const [showJournal, setShowJournal] = useState(false);
+  const [viewMode, setViewMode] = useState<'fruit' | 'foetus'>('fruit');
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
 
@@ -48,6 +50,9 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
 
   // Fetch Weekly Chat Comments
   useEffect(() => {
+    if (!user) return;
+
+    const path = `weekly_chats/${isPregnant ? 'week' : 'month'}_${currentVal}/comments`;
     const chatRef = collection(db, 'weekly_chats', `${isPregnant ? 'week' : 'month'}_${currentVal}`, 'comments');
     const q = query(chatRef, orderBy('timestamp', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
@@ -60,9 +65,9 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
         } as Comment;
       });
       setComments(fetchedComments);
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, path));
     return unsubscribe;
-  }, [currentVal, isPregnant]);
+  }, [currentVal, isPregnant, user]);
   const pregnancyUpdate = PREGNANCY_UPDATES.find(u => u.week === currentVal) || PREGNANCY_UPDATES[0];
   const babyUpdate = BABY_UPDATES.find(u => u.month === currentVal) || BABY_UPDATES[0];
   
@@ -252,35 +257,119 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
 
       {/* Baby Size Visual */}
       <section className="px-4 relative">
-        <motion.div
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowFruitDetails(true)}
-          className="w-full bg-white p-6 rounded-[2rem] border border-stone-100 shadow-sm flex items-center justify-between group text-left cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          <div>
-            <p className="text-xs text-stone-400 font-bold uppercase tracking-wider mb-1">Baby's Size</p>
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-stone-800">Like a {currentFruit.name}</h3>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSizeReasoning(true);
-                }}
-                className="p-1 hover:bg-stone-100 rounded-full text-stone-400 transition-colors"
-              >
-                <Info size={16} />
-              </button>
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => setViewMode('fruit')}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+              viewMode === 'fruit' 
+                ? 'bg-pink-600 text-white shadow-md' 
+                : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-100 dark:border-stone-800'
+            }`}
+          >
+            Fruit View
+          </button>
+          <button
+            onClick={() => setViewMode('foetus')}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+              viewMode === 'foetus' 
+                ? 'bg-pink-600 text-white shadow-md' 
+                : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-100 dark:border-stone-800'
+            }`}
+          >
+            Real View
+          </button>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {viewMode === 'fruit' ? (
+            <motion.div
+              key="fruit-view"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowFruitDetails(true)}
+              className="w-full bg-white dark:bg-stone-900 p-6 rounded-[2rem] border border-stone-100 dark:border-stone-800 shadow-sm flex items-center justify-between group text-left cursor-pointer transition-colors"
+              role="button"
+              tabIndex={0}
+            >
+              <div>
+                <p className="text-xs text-stone-400 dark:text-stone-500 font-bold uppercase tracking-wider mb-1">Baby's Size</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-stone-800 dark:text-white">Like a {currentFruit.name}</h3>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSizeReasoning(true);
+                    }}
+                    className="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full text-stone-400 dark:text-stone-500 transition-colors"
+                  >
+                    <Info size={16} />
+                  </button>
+                </div>
+                <p className="text-sm text-stone-500 dark:text-stone-400">Tap to see details</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-5xl group-hover:scale-110 transition-transform">
+                  {currentFruit.emoji}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="foetus-view"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="w-full bg-white dark:bg-stone-900 rounded-[2rem] border border-stone-100 dark:border-stone-800 shadow-sm overflow-hidden transition-colors"
+            >
+              <div className="relative h-48 w-full">
+                <img 
+                  src={pregnancyUpdate.foetusImageUrl} 
+                  alt={`Medical illustration of foetus in womb at week ${currentVal}`}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
+                  <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest mb-1">In-Womb Development</p>
+                  <h3 className="text-white text-xl font-bold">Week {currentVal} Visual</h3>
+                </div>
+              </div>
+              <div className="p-4 bg-stone-50 dark:bg-stone-800/50">
+                <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                  This medical illustration shows your baby's development within the womb, highlighting key features for this week.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Real Human Size Comparison */}
+        {pregnancyUpdate.realSize && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 w-full bg-stone-900 p-5 rounded-[2rem] border border-stone-800 shadow-xl flex items-center gap-4"
+          >
+            <div className="w-12 h-12 bg-stone-800 rounded-2xl flex items-center justify-center text-stone-400">
+              <Baby size={24} />
             </div>
-            <p className="text-sm text-stone-500">Tap to see details</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-5xl group-hover:scale-110 transition-transform">
-              {currentFruit.emoji}
+            <div className="flex-1">
+              <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Actual Measurements</p>
+              <div className="flex gap-4">
+                <div>
+                  <p className="text-xs text-stone-400">Length</p>
+                  <p className="text-sm font-bold text-white">{pregnancyUpdate.realSize.length}</p>
+                </div>
+                <div className="w-px h-8 bg-stone-800" />
+                <div>
+                  <p className="text-xs text-stone-400">Weight</p>
+                  <p className="text-sm font-bold text-white">{pregnancyUpdate.realSize.weight}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
         
         <div className="flex gap-2 mt-3">
           <button 
@@ -395,6 +484,7 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
             <button
               onClick={async () => {
                 if (newComment.trim() && user) {
+                  const path = `weekly_chats/${isPregnant ? 'week' : 'month'}_${currentVal}/comments`;
                   try {
                     await addDoc(collection(db, 'weekly_chats', `${isPregnant ? 'week' : 'month'}_${currentVal}`, 'comments'), {
                       author: profile.name || 'Anonymous',
@@ -404,7 +494,7 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
                     });
                     setNewComment('');
                   } catch (error) {
-                    console.error("Error posting comment:", error);
+                    handleFirestoreError(error, OperationType.WRITE, path);
                   }
                 }
               }}
@@ -546,7 +636,7 @@ export const BabyTrackerScreen: React.FC<BabyTrackerScreenProps> = ({ onBack }) 
 
   return (
     <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4 flex items-center gap-4">
+      <header className="pt-20 px-4 flex items-center gap-4">
         {onBack && (
           <button 
             onClick={onBack}

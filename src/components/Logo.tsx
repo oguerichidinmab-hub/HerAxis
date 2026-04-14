@@ -1,69 +1,40 @@
 import React from 'react';
 
 interface LogoProps {
-  className?: string;
   size?: number;
+  className?: string;
 }
 
-export const Logo: React.FC<LogoProps> = ({ className = "", size = 40 }) => {
+export const Logo: React.FC<LogoProps> = ({ size = 40, className = "" }) => {
   return (
     <svg 
       width={size} 
       height={size} 
-      viewBox="0 0 100 100" 
+      viewBox="0 0 24 24" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Background Gradient Definition */}
-      <defs>
-        <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f43f5e" /> {/* rose-500 */}
-          <stop offset="100%" stopColor="#fb7185" /> {/* rose-400 */}
-        </linearGradient>
-      </defs>
-
-      {/* Stylized "H" - The Nurturing Arc */}
-      {/* Left Pillar */}
-      <rect 
-        x="25" 
-        y="20" 
-        width="12" 
-        height="60" 
-        rx="6" 
-        fill="url(#logo-gradient)" 
-      />
-      
-      {/* Right Pillar */}
-      <rect 
-        x="63" 
-        y="20" 
-        width="12" 
-        height="60" 
-        rx="6" 
-        fill="url(#logo-gradient)" 
-      />
-      
-      {/* The Arc (Crossbar) */}
+      {/* Head */}
+      <circle cx="12" cy="4" r="2.5" fill="currentColor" />
+      {/* Body with stylized pregnant belly */}
       <path 
-        d="M37 50C37 50 45 42 50 42C55 42 63 50 63 50" 
-        stroke="url(#logo-gradient)" 
-        strokeWidth="10" 
-        strokeLinecap="round" 
+        d="M12 7.5c-2 0-3.5 1.5-3.5 4v4c0 1.5 1 2.5 2.5 2.5h1c3 0 5-2 5-5s-2-5-5-5z" 
+        fill="currentColor" 
       />
-      
-      {/* Small Sparkle/Dot for "Life" */}
-      <circle cx="50" cy="30" r="4" fill="#fb7185" className="animate-pulse" />
+      {/* Legs */}
+      <rect x="9.5" y="18" width="1.5" height="3" rx="0.75" fill="currentColor" />
+      <rect x="12.5" y="18" width="1.5" height="3" rx="0.75" fill="currentColor" />
     </svg>
   );
 };
 
-export const LogoFull: React.FC<{ className?: string }> = ({ className = "" }) => {
+export const LogoFull: React.FC<LogoProps> = ({ size = 40, className = "" }) => {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <Logo size={32} />
-      <span className="text-2xl font-black tracking-tighter text-stone-900">
-        HERA<span className="text-rose-500">XIS</span>
+    <div className={`flex items-center gap-2 ${className}`}>
+      <Logo size={size} className="text-pink-600" />
+      <span className="font-bold text-stone-900 tracking-tighter" style={{ fontSize: size * 0.6 }}>
+        HERAXIS
       </span>
     </div>
   );

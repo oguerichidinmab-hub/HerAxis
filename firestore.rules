@@ -94,5 +94,12 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isNewDocOwner() && isValidString('content', 1, 1000);
       allow update, delete: if isDocOwner();
     }
+
+    // Weekly chats
+    match /weekly_chats/{chatId}/comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isNewDocOwner() && isValidString('content', 1, 1000);
+      allow update, delete: if isDocOwner();
+    }
   }
 }

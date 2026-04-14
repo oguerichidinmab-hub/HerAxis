@@ -7,6 +7,7 @@ import { useUser } from '../UserContext';
 import { HospitalListModal } from './HospitalListModal';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreErrorHandler';
 
 interface SupportScreenProps {
   onBack?: () => void;
@@ -19,6 +20,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
   const [showPeerModal, setShowPeerModal] = useState(false);
   const [showDoctorActions, setShowDoctorActions] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [showExpertModal, setShowExpertModal] = useState(false);
   const [isEditingDoctor, setIsEditingDoctor] = useState(false);
   const [emergencyNote, setEmergencyNote] = useState('');
   const [doctorForm, setDoctorForm] = useState({
@@ -41,6 +43,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
     { id: 'mental-health', title: 'Postpartum Mental Health', icon: Brain, color: 'indigo', description: 'Emotional well-being' },
     { id: 'doctor', title: 'Contact My Doctor', icon: UserCircle, color: 'rose', description: 'Quick medical access' },
     { id: 'hospital', title: 'Find Nearest Hospital', icon: MapPin, color: 'pink', description: 'Emergency & maternal care' },
+    { id: 'expert', title: 'Ask a Health Expert', icon: MessageCircle, color: 'teal', description: 'Talk to a Nurse or Doctor' },
     { id: 'doula', title: 'Ask a Doula', icon: MessageCircle, color: 'stone', description: 'Professional support' },
     { id: 'pelvic', title: 'Pelvic Floor Exercises', icon: Sparkles, color: 'amber', description: 'Core strengthening' },
   ];
@@ -72,9 +75,12 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
 
   // Fetch comments for all mental health items
   React.useEffect(() => {
+    if (!user) return;
+    
     const unsubscribes: (() => void)[] = [];
 
     POSTPARTUM_MENTAL_HEALTH.forEach(item => {
+      const path = `recovery_comments/${item.id}/comments`;
       const q = query(collection(db, 'recovery_comments', item.id, 'comments'), orderBy('timestamp', 'asc'));
       const unsub = onSnapshot(q, (snap) => {
         const fetchedComments = snap.docs.map(d => {
@@ -86,12 +92,12 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
           } as Comment;
         });
         setMentalHealthComments(prev => ({ ...prev, [item.id]: fetchedComments }));
-      });
+      }, (err) => handleFirestoreError(err, OperationType.LIST, path));
       unsubscribes.push(unsub);
     });
 
     return () => unsubscribes.forEach(unsub => unsub());
-  }, []);
+  }, [user]);
 
   const getIcon = (id: string) => {
     switch (id) {
@@ -117,6 +123,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
     if (!newComment.trim() || !user) return;
 
     try {
+      const path = `recovery_comments/${id}/comments`;
       await addDoc(collection(db, 'recovery_comments', id, 'comments'), {
         author: profile.name || 'Mama',
         authorId: user.uid,
@@ -125,76 +132,76 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
       });
       setNewComment('');
     } catch (error) {
-      console.error("Error adding comment:", error);
+      handleFirestoreError(error, OperationType.WRITE, `recovery_comments/${id}/comments`);
     }
   };
 
   const colorClasses = {
     teal: {
-      bg: 'bg-teal-50',
-      border: 'border-teal-100',
-      text: 'text-teal-900',
+      bg: 'bg-teal-50 dark:bg-teal-950/30',
+      border: 'border-teal-100 dark:border-teal-900/50',
+      text: 'text-teal-900 dark:text-teal-100',
       accent: 'bg-teal-500',
       button: 'bg-teal-600',
-      hover: 'hover:bg-teal-50',
-      icon: 'text-teal-500',
-      modalBg: 'bg-teal-50/50',
-      modalBorder: 'border-teal-100/50'
+      hover: 'hover:bg-teal-50 dark:hover:bg-teal-900/40',
+      icon: 'text-teal-500 dark:text-teal-400',
+      modalBg: 'bg-teal-50/50 dark:bg-teal-900/20',
+      modalBorder: 'border-teal-100/50 dark:border-teal-900/30'
     },
     indigo: {
-      bg: 'bg-indigo-50',
-      border: 'border-indigo-100',
-      text: 'text-indigo-900',
+      bg: 'bg-indigo-50 dark:bg-indigo-950/30',
+      border: 'border-indigo-100 dark:border-indigo-900/50',
+      text: 'text-indigo-900 dark:text-indigo-100',
       accent: 'bg-indigo-500',
       button: 'bg-indigo-600',
-      hover: 'hover:bg-indigo-50',
-      icon: 'text-indigo-500',
-      modalBg: 'bg-indigo-50/50',
-      modalBorder: 'border-indigo-100/50'
+      hover: 'hover:bg-indigo-50 dark:hover:bg-indigo-900/40',
+      icon: 'text-indigo-500 dark:text-indigo-400',
+      modalBg: 'bg-indigo-50/50 dark:bg-indigo-900/20',
+      modalBorder: 'border-indigo-100/50 dark:border-indigo-900/30'
     },
     amber: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-100',
-      text: 'text-amber-900',
+      bg: 'bg-amber-50 dark:bg-amber-950/30',
+      border: 'border-amber-100 dark:border-amber-900/50',
+      text: 'text-amber-900 dark:text-amber-100',
       accent: 'bg-amber-500',
       button: 'bg-amber-600',
-      hover: 'hover:bg-amber-50',
-      icon: 'text-amber-500',
-      modalBg: 'bg-amber-50/50',
-      modalBorder: 'border-amber-100/50'
+      hover: 'hover:bg-amber-50 dark:hover:bg-amber-900/40',
+      icon: 'text-amber-500 dark:text-amber-400',
+      modalBg: 'bg-amber-50/50 dark:bg-amber-900/20',
+      modalBorder: 'border-amber-100/50 dark:border-amber-900/30'
     },
     rose: {
-      bg: 'bg-rose-50',
-      border: 'border-rose-100',
-      text: 'text-rose-900',
+      bg: 'bg-rose-50 dark:bg-rose-950/30',
+      border: 'border-rose-100 dark:border-rose-900/50',
+      text: 'text-rose-900 dark:text-rose-100',
       accent: 'bg-rose-500',
       button: 'bg-rose-600',
-      hover: 'hover:bg-rose-50',
-      icon: 'text-rose-500',
-      modalBg: 'bg-rose-50/50',
-      modalBorder: 'border-rose-100/50'
+      hover: 'hover:bg-rose-50 dark:hover:bg-rose-900/40',
+      icon: 'text-rose-500 dark:text-rose-400',
+      modalBg: 'bg-rose-50/50 dark:bg-rose-900/20',
+      modalBorder: 'border-rose-100/50 dark:border-rose-900/30'
     },
     pink: {
-      bg: 'bg-pink-50',
-      border: 'border-pink-100',
-      text: 'text-pink-900',
+      bg: 'bg-pink-50 dark:bg-pink-950/30',
+      border: 'border-pink-100 dark:border-pink-900/50',
+      text: 'text-pink-900 dark:text-pink-100',
       accent: 'bg-pink-500',
       button: 'bg-pink-600',
-      hover: 'hover:bg-pink-50',
-      icon: 'text-pink-500',
-      modalBg: 'bg-pink-50/50',
-      modalBorder: 'border-pink-100/50'
+      hover: 'hover:bg-pink-50 dark:hover:bg-pink-900/40',
+      icon: 'text-pink-500 dark:text-pink-400',
+      modalBg: 'bg-pink-50/50 dark:bg-pink-900/20',
+      modalBorder: 'border-pink-100/50 dark:border-pink-900/30'
     },
     stone: {
-      bg: 'bg-stone-50',
-      border: 'border-stone-200',
-      text: 'text-stone-900',
+      bg: 'bg-stone-50 dark:bg-stone-800/50',
+      border: 'border-stone-200 dark:border-stone-700',
+      text: 'text-stone-900 dark:text-stone-100',
       accent: 'bg-stone-500',
       button: 'bg-stone-600',
-      hover: 'hover:bg-stone-50',
-      icon: 'text-stone-500',
-      modalBg: 'bg-stone-50/50',
-      modalBorder: 'border-stone-100/50'
+      hover: 'hover:bg-stone-50 dark:hover:bg-stone-800/80',
+      icon: 'text-stone-500 dark:text-stone-400',
+      modalBg: 'bg-stone-50/50 dark:bg-stone-800/20',
+      modalBorder: 'border-stone-100/50 dark:border-stone-700/30'
     }
   };
 
@@ -205,24 +212,24 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="space-y-6 pb-24">
-      <header className="pt-8 px-4 flex items-center gap-4">
+    <div className="space-y-8 pb-32">
+      <header className="pt-20 px-6 flex items-center gap-5">
         {onBack && (
           <button 
             onClick={onBack}
-            className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+            className="p-2.5 bg-white dark:bg-stone-800 shadow-sm border border-stone-100 dark:border-stone-700 rounded-full transition-all hover:scale-110 active:scale-95"
           >
-            <ArrowLeft className="w-6 h-6 text-stone-600" />
+            <ArrowLeft className="w-5 h-5 text-stone-600 dark:text-stone-300" />
           </button>
         )}
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-stone-900">Support Hub</h1>
-          <p className="text-stone-500">Care for your mind and body</p>
+          <h1 className="text-3xl font-black text-stone-900 dark:text-white tracking-tight">Support Hub</h1>
+          <p className="text-stone-500 dark:text-stone-400 font-medium">Care for your mind and body</p>
         </div>
         {activeView !== 'hub' && (
           <button 
             onClick={() => setActiveView('hub')}
-            className="p-2 bg-stone-100 rounded-full text-stone-500 hover:bg-stone-200 transition-colors"
+            className="p-2.5 bg-stone-100 dark:bg-stone-800 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
           >
             <X size={20} />
           </button>
@@ -236,23 +243,40 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="px-4 grid grid-cols-1 gap-4"
+            className="px-6 grid grid-cols-1 gap-5"
           >
+            {/* Emergency Mode Button */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowEmergencyModal(true)}
+              className="bg-red-600 p-6 rounded-[2.5rem] shadow-xl shadow-red-200/50 dark:shadow-none flex items-center gap-5 text-left hover:bg-red-700 transition-all group border border-red-500"
+            >
+              <div className="bg-white/20 p-4.5 rounded-2xl text-white group-hover:scale-110 transition-transform">
+                <AlertCircle size={32} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-black text-white text-xl tracking-tight">Emergency Mode</h3>
+                <p className="text-sm text-red-100 font-medium mt-1">What to do during labour & hospital info</p>
+              </div>
+              <ChevronRight size={22} className="text-red-200 group-hover:text-white group-hover:translate-x-1 transition-all" />
+            </motion.button>
+
             {hubCards.map((card) => (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 key={card.id}
                 onClick={() => setActiveView(card.id as any)}
-                className={`bg-white p-5 rounded-[2rem] border border-stone-100 shadow-sm flex items-center gap-4 text-left hover:border-pink-200 transition-all group`}
+                className={`bg-white dark:bg-stone-900 p-6 rounded-[2.5rem] border border-stone-100 dark:border-stone-800 shadow-xl shadow-stone-200/30 dark:shadow-none flex items-center gap-5 text-left hover:border-pink-200 dark:hover:border-pink-900 transition-all group`}
               >
-                <div className={`${colorClasses[card.color as keyof typeof colorClasses].bg} p-4 rounded-2xl ${colorClasses[card.color as keyof typeof colorClasses].icon} group-hover:scale-110 transition-transform`}>
-                  <card.icon size={24} />
+                <div className={`${colorClasses[card.color as keyof typeof colorClasses].bg} p-4.5 rounded-2xl ${colorClasses[card.color as keyof typeof colorClasses].icon} group-hover:scale-110 transition-transform`}>
+                  <card.icon size={26} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-stone-900">{card.title}</h3>
-                  <p className="text-xs text-stone-400">{card.description}</p>
+                  <h3 className="font-black text-stone-900 dark:text-white text-lg tracking-tight">{card.title}</h3>
+                  <p className="text-xs text-stone-400 dark:text-stone-500 font-medium">{card.description}</p>
                 </div>
-                <ChevronRight size={20} className="text-stone-300 group-hover:text-pink-400 group-hover:translate-x-1 transition-all" />
-              </button>
+                <ChevronRight size={22} className="text-stone-300 dark:text-stone-700 group-hover:text-pink-400 group-hover:translate-x-1 transition-all" />
+              </motion.button>
             ))}
           </motion.section>
         ) : (
@@ -261,36 +285,37 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-8"
           >
             {activeView === 'recovery' && (
-              <section className="px-4">
-                <div className={`${colorClasses.teal.bg} rounded-[2rem] p-6 border ${colorClasses.teal.border}`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`${colorClasses.teal.accent} p-2 rounded-xl text-white`}>
-                      <Heart size={20} />
+              <section className="px-6">
+                <div className={`${colorClasses.teal.bg} rounded-[3rem] p-8 border ${colorClasses.teal.border} shadow-xl shadow-teal-100/20 dark:shadow-none`}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className={`${colorClasses.teal.accent} p-3 rounded-2xl text-white shadow-lg shadow-teal-200 dark:shadow-none`}>
+                      <Heart size={24} />
                     </div>
-                    <h2 className={`text-xl font-bold ${colorClasses.teal.text}`}>Postpartum Recovery</h2>
+                    <h2 className={`text-2xl font-black tracking-tight ${colorClasses.teal.text}`}>Postpartum Recovery</h2>
                   </div>
-                  <p className="text-teal-800 text-sm mb-6 leading-relaxed">
+                  <p className="text-teal-800 dark:text-teal-200 text-sm mb-8 leading-relaxed font-medium">
                     Healing takes time. Be gentle with yourself as your body recovers from the incredible journey of childbirth.
                   </p>
                   
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-4">
                     {POSTPARTUM_RECOVERY.map((item) => {
                       const Icon = getIcon(item.id);
                       return (
-                        <button 
+                        <motion.button 
+                          whileTap={{ scale: 0.98 }}
                           key={item.id} 
                           onClick={() => openModal(item, 'teal')}
-                          className={`bg-white p-4 rounded-2xl border ${colorClasses.teal.border} flex items-center justify-between ${colorClasses.teal.text} font-bold text-sm ${colorClasses.teal.hover} transition-colors`}
+                          className={`bg-white dark:bg-stone-900/50 p-5 rounded-2xl border ${colorClasses.teal.border} flex items-center justify-between ${colorClasses.teal.text} font-black text-sm ${colorClasses.teal.hover} transition-all shadow-sm`}
                         >
-                          <div className="flex items-center gap-3">
-                            <Icon size={18} className={colorClasses.teal.icon} />
+                          <div className="flex items-center gap-4">
+                            <Icon size={20} className={colorClasses.teal.icon} />
                             {item.title}
                           </div>
-                          <ChevronRight size={16} />
-                        </button>
+                          <ChevronRight size={18} />
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -299,70 +324,72 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
             )}
 
             {activeView === 'mental-health' && (
-              <section className="px-4">
-                <div className={`${colorClasses.indigo.bg} rounded-[2rem] p-6 border ${colorClasses.indigo.border}`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`${colorClasses.indigo.accent} p-2 rounded-xl text-white`}>
-                      <Brain size={20} />
+              <section className="px-6">
+                <div className={`${colorClasses.indigo.bg} rounded-[3rem] p-8 border ${colorClasses.indigo.border} shadow-xl shadow-indigo-100/20 dark:shadow-none`}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className={`${colorClasses.indigo.accent} p-3 rounded-2xl text-white shadow-lg shadow-indigo-200 dark:shadow-none`}>
+                      <Brain size={24} />
                     </div>
-                    <h2 className={`text-xl font-bold ${colorClasses.indigo.text}`}>Postpartum Mental Health</h2>
+                    <h2 className={`text-2xl font-black tracking-tight ${colorClasses.indigo.text}`}>Postpartum Mental Health</h2>
                   </div>
-                  <p className="text-indigo-800 text-sm mb-6 leading-relaxed">
+                  <p className="text-indigo-800 dark:text-indigo-200 text-sm mb-8 leading-relaxed font-medium">
                     Your emotional well-being is just as important as your physical health. You are not alone in this journey.
                   </p>
                   
-                  <div className="grid grid-cols-1 gap-3 mb-6">
+                  <div className="grid grid-cols-1 gap-4 mb-8">
                     {POSTPARTUM_MENTAL_HEALTH.map((item) => {
                       const Icon = getIcon(item.id);
                       return (
-                        <button 
+                        <motion.button 
+                          whileTap={{ scale: 0.98 }}
                           key={item.id} 
                           onClick={() => openModal(item, 'indigo')}
-                          className={`bg-white p-4 rounded-2xl border ${colorClasses.indigo.border} flex items-center justify-between ${colorClasses.indigo.text} font-bold text-sm ${colorClasses.indigo.hover} transition-colors`}
+                          className={`bg-white dark:bg-stone-900/50 p-5 rounded-2xl border ${colorClasses.indigo.border} flex items-center justify-between ${colorClasses.indigo.text} font-black text-sm ${colorClasses.indigo.hover} transition-all shadow-sm`}
                         >
-                          <div className="flex items-center gap-3">
-                            <Icon size={18} className={colorClasses.indigo.icon} />
+                          <div className="flex items-center gap-4">
+                            <Icon size={20} className={colorClasses.indigo.icon} />
                             {item.title}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             {mentalHealthComments[item.id] && (
-                              <span className="flex items-center gap-1 text-[10px] text-indigo-400">
-                                <MessageSquare size={12} /> {mentalHealthComments[item.id].length}
+                              <span className="flex items-center gap-1.5 text-[10px] text-indigo-400 font-black uppercase tracking-widest">
+                                <MessageSquare size={14} /> {mentalHealthComments[item.id].length}
                               </span>
                             )}
-                            <ChevronRight size={16} />
+                            <ChevronRight size={18} />
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
 
-                  <div className="space-y-3 pt-4 border-t border-indigo-100">
-                    <button 
+                  <div className="space-y-4 pt-6 border-t border-indigo-100 dark:border-indigo-900/50">
+                    <motion.button 
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => setShowPeerModal(true)}
-                      className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+                      className="w-full bg-indigo-600 text-white py-5 rounded-[2rem] font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 dark:shadow-none active:scale-95"
                     >
                       Talk to a Peer Counselor
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </section>
             )}
 
             {activeView === 'doctor' && (
-              <section className="px-4">
-                <div className="bg-rose-50 rounded-[2rem] p-6 border border-rose-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-rose-500 p-2 rounded-xl text-white">
-                        <UserCircle size={20} />
+              <section className="px-6">
+                <div className="bg-rose-50 dark:bg-rose-950/30 rounded-[3rem] p-8 border border-rose-100 dark:border-rose-900/50 shadow-xl shadow-rose-100/20 dark:shadow-none">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-rose-500 p-3 rounded-2xl text-white shadow-lg shadow-rose-200 dark:shadow-none">
+                        <UserCircle size={24} />
                       </div>
-                      <h2 className="text-xl font-bold text-rose-900">Contact My Doctor</h2>
+                      <h2 className="text-2xl font-black tracking-tight text-rose-900 dark:text-rose-100">Contact My Doctor</h2>
                     </div>
                     {profile.doctorContact && (
                       <button 
                         onClick={() => setIsEditingDoctor(true)}
-                        className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
+                        className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:text-rose-700 transition-colors"
                       >
                         Edit Info
                       </button>
@@ -370,41 +397,41 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
                   </div>
 
                   {!profile.doctorContact || isEditingDoctor ? (
-                    <div className="space-y-4">
-                      <p className="text-rose-800 text-sm leading-relaxed">
+                    <div className="space-y-6">
+                      <p className="text-rose-800 dark:text-rose-200 text-sm leading-relaxed font-medium">
                         {isEditingDoctor ? 'Update your doctor\'s contact details below.' : 'Add your doctor\'s information so you can reach them quickly in case of concerns or emergencies.'}
                       </p>
                       
-                      <div className="space-y-3 bg-white/50 p-4 rounded-2xl border border-rose-100">
-                        <div className="grid grid-cols-1 gap-3">
+                      <div className="space-y-4 bg-white/50 dark:bg-stone-900/50 p-6 rounded-[2rem] border border-rose-100 dark:border-rose-900/30">
+                        <div className="grid grid-cols-1 gap-4">
                           <input 
                             type="text"
                             placeholder="Doctor's Name"
                             value={doctorForm.name}
                             onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })}
-                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                            className="w-full bg-white dark:bg-stone-800 border border-rose-100 dark:border-rose-900/30 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-all text-stone-900 dark:text-white"
                           />
                           <input 
                             type="text"
                             placeholder="Hospital/Clinic Name"
                             value={doctorForm.hospital}
                             onChange={(e) => setDoctorForm({ ...doctorForm, hospital: e.target.value })}
-                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                            className="w-full bg-white dark:bg-stone-800 border border-rose-100 dark:border-rose-900/30 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-all text-stone-900 dark:text-white"
                           />
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-4">
                             <input 
                               type="tel"
                               placeholder="Phone Number"
                               value={doctorForm.phone}
                               onChange={(e) => setDoctorForm({ ...doctorForm, phone: e.target.value })}
-                              className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                              className="w-full bg-white dark:bg-stone-800 border border-rose-100 dark:border-rose-900/30 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-all text-stone-900 dark:text-white"
                             />
                             <input 
                               type="tel"
-                              placeholder="WhatsApp (Optional)"
+                              placeholder="WhatsApp"
                               value={doctorForm.whatsapp}
                               onChange={(e) => setDoctorForm({ ...doctorForm, whatsapp: e.target.value })}
-                              className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                              className="w-full bg-white dark:bg-stone-800 border border-rose-100 dark:border-rose-900/30 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-all text-stone-900 dark:text-white"
                             />
                           </div>
                           <input 
@@ -412,27 +439,28 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
                             placeholder="Email Address (Optional)"
                             value={doctorForm.email}
                             onChange={(e) => setDoctorForm({ ...doctorForm, email: e.target.value })}
-                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                            className="w-full bg-white dark:bg-stone-800 border border-rose-100 dark:border-rose-900/30 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-all text-stone-900 dark:text-white"
                           />
                           <input 
                             type="text"
                             placeholder="Specialty (e.g. OB/GYN)"
                             value={doctorForm.specialty}
                             onChange={(e) => setDoctorForm({ ...doctorForm, specialty: e.target.value })}
-                            className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+                            className="w-full bg-white dark:bg-stone-800 border border-rose-100 dark:border-rose-900/30 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-all text-stone-900 dark:text-white"
                           />
                         </div>
-                        <button 
+                        <motion.button 
+                          whileTap={{ scale: 0.98 }}
                           onClick={handleSaveDoctor}
                           disabled={!doctorForm.name || !doctorForm.hospital || !doctorForm.phone}
-                          className="w-full bg-rose-600 text-white py-4 rounded-2xl font-bold hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full bg-rose-600 text-white py-5 rounded-[2rem] font-black hover:bg-rose-700 transition-all shadow-xl shadow-rose-100 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                         >
                           {isEditingDoctor ? 'Save Changes' : 'Save Doctor Info'}
-                        </button>
+                        </motion.button>
                         {isEditingDoctor && (
                           <button 
                             onClick={() => setIsEditingDoctor(false)}
-                            className="w-full text-stone-400 text-xs font-bold py-2"
+                            className="w-full text-stone-400 dark:text-stone-500 text-[10px] font-black uppercase tracking-widest py-2"
                           >
                             Cancel
                           </button>
@@ -440,27 +468,28 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="bg-white p-5 rounded-3xl border border-rose-100 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600">
-                          <UserCircle size={28} />
+                    <div className="space-y-6">
+                      <div className="bg-white dark:bg-stone-900 p-6 rounded-[2.5rem] border border-rose-100 dark:border-rose-900/30 shadow-sm flex items-center gap-5">
+                        <div className="w-14 h-14 bg-rose-100 dark:bg-rose-900/30 rounded-2xl flex items-center justify-center text-rose-600 dark:text-rose-400">
+                          <UserCircle size={32} />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-stone-900">Dr. {profile.doctorContact.name}</h3>
-                          <p className="text-xs text-stone-500">{profile.doctorContact.specialty || 'Doctor'} • {profile.doctorContact.hospital}</p>
+                          <h3 className="font-black text-stone-900 dark:text-white text-lg tracking-tight">Dr. {profile.doctorContact.name}</h3>
+                          <p className="text-xs text-stone-500 dark:text-stone-400 font-bold uppercase tracking-widest">{profile.doctorContact.specialty || 'Doctor'} • {profile.doctorContact.hospital}</p>
                         </div>
                       </div>
 
-                      <button 
+                      <motion.button 
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => setShowDoctorActions(true)}
-                        className="w-full bg-rose-600 text-white py-4 rounded-2xl font-bold hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100 flex items-center justify-center gap-2"
+                        className="w-full bg-rose-600 text-white py-5 rounded-[2rem] font-black hover:bg-rose-700 transition-all shadow-xl shadow-rose-100 dark:shadow-none flex items-center justify-center gap-3 active:scale-95"
                       >
-                        <Phone size={18} /> Contact My Doctor
-                      </button>
+                        <Phone size={20} /> Contact My Doctor
+                      </motion.button>
                     </div>
                   )}
                   
-                  <p className="mt-4 text-[10px] text-rose-400 text-center italic">
+                  <p className="mt-6 text-[10px] text-rose-400 dark:text-rose-500 text-center italic font-bold tracking-wide">
                     In a life-threatening emergency, please call 911 immediately.
                   </p>
                 </div>
@@ -468,15 +497,15 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
             )}
 
             {activeView === 'hospital' && (
-              <section className="px-4">
-                <div className="bg-stone-900 rounded-[2rem] p-6 text-white shadow-xl shadow-stone-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-pink-600 p-2 rounded-xl">
-                      <MapPin size={20} />
+              <section className="px-6">
+                <div className="bg-stone-900 dark:bg-black rounded-[3rem] p-8 text-white shadow-2xl shadow-stone-200/20 dark:shadow-none border border-stone-800">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="bg-pink-600 p-3 rounded-2xl shadow-lg shadow-pink-900/50">
+                      <MapPin size={24} />
                     </div>
-                    <h2 className="text-xl font-bold">Find Nearest Hospital</h2>
+                    <h2 className="text-2xl font-black tracking-tight">Find Nearest Hospital</h2>
                   </div>
-                  <p className="text-stone-400 text-sm mb-6 leading-relaxed">
+                  <p className="text-stone-400 text-sm mb-8 leading-relaxed font-medium">
                     In case of an emergency or if you need immediate maternal care, locate the nearest hospital or clinic.
                   </p>
                   <HospitalListModal 
@@ -488,57 +517,83 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
               </section>
             )}
 
-            {activeView === 'doula' && (
-              <section className="px-4">
-                <div className="bg-stone-50 rounded-[2rem] p-6 border border-stone-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-stone-500 p-2 rounded-xl text-white">
-                      <UserCircle size={20} />
+            {activeView === 'expert' && (
+              <section className="px-6">
+                <div className="bg-teal-50 dark:bg-teal-950/30 rounded-[3rem] p-8 border border-teal-100 dark:border-teal-900/50 shadow-xl shadow-teal-100/20 dark:shadow-none">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="bg-teal-500 p-3 rounded-2xl text-white shadow-lg shadow-teal-200 dark:shadow-none">
+                      <MessageCircle size={24} />
                     </div>
-                    <h2 className="text-xl font-bold text-stone-900">Ask a Doula</h2>
+                    <h2 className="text-2xl font-black tracking-tight text-teal-900 dark:text-teal-100">Ask a Health Expert</h2>
                   </div>
-                  <p className="text-stone-600 text-sm mb-6 leading-relaxed">
+                  <p className="text-teal-800 dark:text-teal-200 text-sm mb-8 leading-relaxed font-medium">
+                    Get reliable advice from certified nurses and gynecologists.
+                  </p>
+                  
+                  <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowExpertModal(true)}
+                    className="w-full bg-teal-600 text-white py-5 rounded-[2rem] font-black hover:bg-teal-700 transition-all shadow-xl shadow-teal-100 dark:shadow-none active:scale-95"
+                  >
+                    Start Consultation
+                  </motion.button>
+                </div>
+              </section>
+            )}
+
+            {activeView === 'doula' && (
+              <section className="px-6">
+                <div className="bg-stone-50 dark:bg-stone-900 rounded-[3rem] p-8 border border-stone-200 dark:border-stone-800 shadow-xl shadow-stone-200/20 dark:shadow-none">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="bg-stone-500 p-3 rounded-2xl text-white shadow-lg shadow-stone-200 dark:shadow-none">
+                      <UserCircle size={24} />
+                    </div>
+                    <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">Ask a Doula</h2>
+                  </div>
+                  <p className="text-stone-600 dark:text-stone-400 text-sm mb-8 leading-relaxed font-medium">
                     Personalized guidance and emotional support from trained birth and postpartum professionals.
                   </p>
                   
-                  <button 
+                  <motion.button 
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setShowDoulaModal(true)}
-                    className="w-full bg-stone-800 text-white py-4 rounded-2xl font-bold hover:bg-stone-900 transition-colors shadow-lg shadow-stone-100"
+                    className="w-full bg-stone-800 dark:bg-stone-700 text-white py-5 rounded-[2rem] font-black hover:bg-stone-900 dark:hover:bg-stone-600 transition-all shadow-xl shadow-stone-100 dark:shadow-none active:scale-95"
                   >
                     Connect with a Doula
-                  </button>
+                  </motion.button>
                 </div>
               </section>
             )}
 
             {activeView === 'pelvic' && (
-              <section className="px-4">
-                <div className={`${colorClasses.amber.bg} rounded-[2rem] p-6 border ${colorClasses.amber.border}`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`${colorClasses.amber.accent} p-2 rounded-xl text-white`}>
-                      <Sparkles size={20} />
+              <section className="px-6">
+                <div className={`${colorClasses.amber.bg} rounded-[3rem] p-8 border ${colorClasses.amber.border} shadow-xl shadow-amber-100/20 dark:shadow-none`}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className={`${colorClasses.amber.accent} p-3 rounded-2xl text-white shadow-lg shadow-amber-200 dark:shadow-none`}>
+                      <Sparkles size={24} />
                     </div>
-                    <h2 className={`text-xl font-bold ${colorClasses.amber.text}`}>Pelvic Floor Exercises</h2>
+                    <h2 className={`text-2xl font-black tracking-tight ${colorClasses.amber.text}`}>Pelvic Floor Exercises</h2>
                   </div>
-                  <p className="text-amber-800 text-sm mb-6 leading-relaxed">
+                  <p className="text-amber-800 dark:text-amber-200 text-sm mb-8 leading-relaxed font-medium">
                     Strengthening your core and pelvic floor helps with recovery and long-term wellness.
                   </p>
                   
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-4">
                     {PELVIC_FLOOR_EXERCISES.map((item) => {
                       const Icon = getIcon(item.id);
                       return (
-                        <button 
+                        <motion.button 
+                          whileTap={{ scale: 0.98 }}
                           key={item.id} 
                           onClick={() => openModal(item, 'amber')}
-                          className={`bg-white p-4 rounded-2xl border ${colorClasses.amber.border} flex items-center justify-between ${colorClasses.amber.text} font-bold text-sm ${colorClasses.amber.hover} transition-colors`}
+                          className={`bg-white dark:bg-stone-900/50 p-5 rounded-2xl border ${colorClasses.amber.border} flex items-center justify-between ${colorClasses.amber.text} font-black text-sm ${colorClasses.amber.hover} transition-all shadow-sm`}
                         >
-                          <div className="flex items-center gap-3">
-                            <Icon size={18} className={colorClasses.amber.icon} />
+                          <div className="flex items-center gap-4">
+                            <Icon size={20} className={colorClasses.amber.icon} />
                             {item.title}
                           </div>
-                          <ChevronRight size={16} />
-                        </button>
+                          <ChevronRight size={18} />
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -799,57 +854,59 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
                   <p className="text-indigo-500 font-bold uppercase tracking-widest text-xs mt-1">Shared Understanding</p>
                 </div>
 
-                <div className="space-y-4">
-                  <p className="text-sm text-stone-600 leading-relaxed">
+                <div className="space-y-6">
+                  <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
                     Peer counselors are mothers who have been through similar journeys and are trained to provide empathetic, non-judgmental emotional support.
                   </p>
                   
-                  <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 space-y-3">
-                    <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">Why speak to them?</h4>
-                    <ul className="space-y-2">
+                  <div className="bg-indigo-50 dark:bg-indigo-950/30 p-6 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-900/50 space-y-4">
+                    <h4 className="text-[10px] font-black text-indigo-900 dark:text-white uppercase tracking-widest">Why speak to them?</h4>
+                    <ul className="space-y-3">
                       {['Safe space to share feelings', 'Shared lived experiences', 'Practical tips from fellow mothers', 'Reduced feelings of isolation'].map((item, i) => (
-                        <li key={`peer-support-${i}`} className="text-xs text-indigo-600 flex items-start gap-2">
-                          <CheckCircle2 size={14} className="text-indigo-400 mt-0.5 flex-shrink-0" />
+                        <li key={`peer-support-${i}`} className="text-xs text-indigo-600 dark:text-indigo-400 flex items-start gap-3 font-medium">
+                          <CheckCircle2 size={16} className="text-indigo-400 dark:text-indigo-600 mt-0.5 flex-shrink-0" />
                           {item}
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
-                    <h4 className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Availability</h4>
-                    <p className="text-xs text-amber-800">Available Mon-Fri, 9 AM - 8 PM</p>
-                    <p className="text-[10px] text-amber-600 mt-1 italic">Current status: Online</p>
+                  <div className="bg-amber-50 dark:bg-amber-950/30 p-6 rounded-[2.5rem] border border-amber-100 dark:border-amber-900/50">
+                    <h4 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2">Availability</h4>
+                    <p className="text-xs text-amber-800 dark:text-amber-200 font-bold">Available Mon-Fri, 9 AM - 8 PM</p>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 italic font-bold">Current status: Online</p>
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider px-1">Request Message</h4>
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest px-1">Request Message</h4>
                     <div className="relative group">
-                      <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 text-xs text-stone-700 italic leading-relaxed pr-12">
+                      <div className="bg-stone-50 dark:bg-stone-800 p-5 rounded-[2rem] border border-stone-200 dark:border-stone-700 text-xs text-stone-700 dark:text-stone-300 italic leading-relaxed pr-14 font-medium">
                         "Hello, I would like to speak with a peer counselor for support. I have been feeling overwhelmed and would appreciate someone to talk to. Please let me know how I can connect. Thank you."
                       </div>
-                      <button 
+                      <motion.button 
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => handleCopy(`Hello, I would like to speak with a peer counselor for support. I have been feeling overwhelmed and would appreciate someone to talk to. Please let me know how I can connect. Thank you.`)}
-                        className="absolute top-3 right-3 p-2 bg-white rounded-xl border border-stone-200 hover:bg-stone-50 transition-colors shadow-sm"
+                        className="absolute top-4 right-4 p-2.5 bg-white dark:bg-stone-700 rounded-xl border border-stone-200 dark:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-600 transition-all shadow-sm"
                       >
-                        {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} className="text-stone-400" />}
-                      </button>
+                        {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} className="text-stone-400 dark:text-stone-500" />}
+                      </motion.button>
                     </div>
                   </div>
 
-                  <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100">
-                    <p className="text-[10px] text-rose-800 leading-tight">
-                      <strong>Disclaimer:</strong> Peer counselors provide emotional support and shared understanding, but are not a replacement for emergency or medical care.
+                  <div className="bg-rose-50 dark:bg-rose-950/30 p-5 rounded-[2rem] border border-rose-100 dark:border-rose-900/50">
+                    <p className="text-[10px] text-rose-800 dark:text-rose-200 leading-tight font-medium">
+                      <strong className="font-black">Disclaimer:</strong> Peer counselors provide emotional support and shared understanding, but are not a replacement for emergency or medical care.
                     </p>
                   </div>
                 </div>
 
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowPeerModal(false)}
-                  className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg transition-colors"
+                  className="w-full bg-indigo-600 text-white py-5 rounded-[2rem] font-black shadow-xl transition-all active:scale-95"
                 >
                   Request Support Now
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
@@ -861,153 +918,276 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowDoctorActions(false)}
-            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end justify-center sm:items-center p-4"
+            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end justify-center sm:items-center p-6"
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl space-y-6"
+              className="bg-white dark:bg-stone-900 w-full max-w-md rounded-t-[3rem] sm:rounded-[3rem] p-10 shadow-2xl space-y-8 border border-stone-100 dark:border-stone-800"
             >
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-bold text-stone-900">Contact Dr. {profile.doctorContact.name}</h3>
-                  <p className="text-xs text-stone-400">{profile.doctorContact.hospital}</p>
+                  <h3 className="text-2xl font-black text-stone-900 dark:text-white tracking-tight">Contact Dr. {profile.doctorContact.name}</h3>
+                  <p className="text-xs text-stone-400 dark:text-stone-500 font-bold uppercase tracking-widest mt-1">{profile.doctorContact.hospital}</p>
                 </div>
-                <button onClick={() => setShowDoctorActions(false)} className="p-2 hover:bg-stone-100 rounded-full">
-                  <X size={20} className="text-stone-400" />
+                <button 
+                  onClick={() => setShowDoctorActions(false)} 
+                  className="p-2.5 bg-stone-50 dark:bg-stone-800 rounded-full transition-all hover:scale-110 active:scale-95"
+                >
+                  <X size={20} className="text-stone-400 dark:text-stone-500" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                <a 
+              <div className="grid grid-cols-1 gap-4">
+                <motion.a 
+                  whileTap={{ scale: 0.98 }}
                   href={`tel:${profile.doctorContact.phone}`}
-                  className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                  className="flex items-center gap-5 p-5 bg-stone-50 dark:bg-stone-800/50 rounded-[2rem] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all border border-stone-100 dark:border-stone-700"
                 >
-                  <div className="bg-green-100 p-2 rounded-xl text-green-600">
-                    <Phone size={20} />
+                  <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-2xl text-green-600 dark:text-green-400 shadow-sm">
+                    <Phone size={22} />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-sm">Call Doctor</p>
-                    <p className="text-[10px] text-stone-400">{profile.doctorContact.phone}</p>
+                    <p className="font-black text-sm text-stone-900 dark:text-white">Call Doctor</p>
+                    <p className="text-[10px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-widest">{profile.doctorContact.phone}</p>
                   </div>
-                </a>
+                </motion.a>
 
                 {profile.doctorContact.whatsapp && (
-                  <a 
+                  <motion.a 
+                    whileTap={{ scale: 0.98 }}
                     href={`https://wa.me/${profile.doctorContact.whatsapp.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                    className="flex items-center gap-5 p-5 bg-stone-50 dark:bg-stone-800/50 rounded-[2rem] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all border border-stone-100 dark:border-stone-700"
                   >
-                    <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
-                      <MessageCircle size={20} />
+                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-2xl text-emerald-600 dark:text-emerald-400 shadow-sm">
+                      <MessageCircle size={22} />
                     </div>
                     <div className="text-left">
-                      <p className="font-bold text-sm">Send WhatsApp Message</p>
-                      <p className="text-[10px] text-stone-400">Direct Message</p>
+                      <p className="font-black text-sm text-stone-900 dark:text-white">Send WhatsApp Message</p>
+                      <p className="text-[10px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-widest">Direct Message</p>
                     </div>
-                  </a>
+                  </motion.a>
                 )}
 
-                <a 
+                <motion.a 
+                  whileTap={{ scale: 0.98 }}
                   href={`sms:${profile.doctorContact.phone}`}
-                  className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                  className="flex items-center gap-5 p-5 bg-stone-50 dark:bg-stone-800/50 rounded-[2rem] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all border border-stone-100 dark:border-stone-700"
                 >
-                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
-                    <MessageSquare size={20} />
+                  <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-2xl text-blue-600 dark:text-blue-400 shadow-sm">
+                    <MessageSquare size={22} />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-sm">Send SMS</p>
-                    <p className="text-[10px] text-stone-400">Quick Text</p>
+                    <p className="font-black text-sm text-stone-900 dark:text-white">Send SMS</p>
+                    <p className="text-[10px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-widest">Quick Text</p>
                   </div>
-                </a>
+                </motion.a>
 
                 {profile.doctorContact.email && (
-                  <a 
+                  <motion.a 
+                    whileTap={{ scale: 0.98 }}
                     href={`mailto:${profile.doctorContact.email}`}
-                    className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl hover:bg-stone-100 transition-colors"
+                    className="flex items-center gap-5 p-5 bg-stone-50 dark:bg-stone-800/50 rounded-[2rem] hover:bg-stone-100 dark:hover:bg-stone-800 transition-all border border-stone-100 dark:border-stone-700"
                   >
-                    <div className="bg-indigo-100 p-2 rounded-xl text-indigo-600">
-                      <Mail size={20} />
+                    <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-2xl text-indigo-600 dark:text-indigo-400 shadow-sm">
+                      <Mail size={22} />
                     </div>
                     <div className="text-left">
-                      <p className="font-bold text-sm">Send Email</p>
-                      <p className="text-[10px] text-stone-400">{profile.doctorContact.email}</p>
+                      <p className="font-black text-sm text-stone-900 dark:text-white">Send Email</p>
+                      <p className="text-[10px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-widest">{profile.doctorContact.email}</p>
                     </div>
-                  </a>
+                  </motion.a>
                 )}
 
-                <button 
+                <motion.button 
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowEmergencyModal(true)}
-                  className="flex items-center gap-4 p-4 bg-rose-50 rounded-2xl hover:bg-rose-100 transition-colors border border-rose-100"
+                  className="flex items-center gap-5 p-5 bg-rose-50 dark:bg-rose-950/30 rounded-[2rem] hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-all border border-rose-100 dark:border-rose-900/50"
                 >
-                  <div className="bg-rose-100 p-2 rounded-xl text-rose-600">
-                    <AlertCircle size={20} />
+                  <div className="bg-rose-100 dark:bg-rose-900/30 p-3 rounded-2xl text-rose-600 dark:text-rose-400 shadow-sm">
+                    <AlertCircle size={22} />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-sm text-rose-700">Emergency Alert</p>
-                    <p className="text-[10px] text-rose-500">Send pre-filled urgent message</p>
+                    <p className="font-black text-sm text-rose-700 dark:text-rose-400">Emergency Alert</p>
+                    <p className="text-[10px] text-rose-500 dark:text-rose-500 font-bold uppercase tracking-widest">Send pre-filled urgent message</p>
                   </div>
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
         )}
 
-        {/* Emergency Alert Confirmation Modal */}
-        {showEmergencyModal && profile.doctorContact && (
+        {/* Expert Modal */}
+        {showExpertModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={() => setShowExpertModal(false)}
             className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl space-y-6"
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-stone-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden border border-stone-100 dark:border-stone-800"
             >
-              <div className="text-center space-y-2">
-                <div className="bg-rose-100 w-16 h-16 rounded-full flex items-center justify-center text-rose-600 mx-auto">
-                  <AlertCircle size={32} />
+              <button 
+                onClick={() => setShowExpertModal(false)} 
+                className="absolute top-6 right-6 p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+              >
+                <X size={24} className="text-stone-400" />
+              </button>
+
+              <div className="space-y-6 text-center">
+                <div className="bg-teal-100 dark:bg-teal-900/30 w-20 h-20 rounded-full flex items-center justify-center text-teal-600 dark:text-teal-400 mx-auto shadow-lg shadow-teal-100 dark:shadow-none">
+                  <MessageCircle size={40} />
                 </div>
-                <h3 className="text-2xl font-bold text-stone-900">Emergency Alert</h3>
-                <p className="text-sm text-stone-500">This will send an urgent message to Dr. {profile.doctorContact.name}.</p>
-              </div>
+                
+                <div>
+                  <h2 className="text-3xl font-black text-stone-900 dark:text-white tracking-tight">Coming Soon</h2>
+                  <p className="text-teal-600 dark:text-teal-400 font-bold uppercase tracking-widest text-xs mt-2">Expert Consultations</p>
+                </div>
 
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Add a note (Optional)</label>
-                <textarea 
-                  value={emergencyNote}
-                  onChange={(e) => setEmergencyNote(e.target.value)}
-                  placeholder="What is happening? (e.g. heavy bleeding, severe pain)"
-                  className="w-full bg-stone-50 border border-stone-100 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-rose-200 transition-all h-24 resize-none"
-                />
-              </div>
-
-              <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-start gap-3">
-                <AlertCircle size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
-                <p className="text-[10px] text-amber-800 leading-tight">
-                  <strong>Important:</strong> If this is a life-threatening emergency, please call 911 or your local emergency services immediately.
+                <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-medium">
+                  We are partnering with certified nurses and gynecologists to bring you reliable, on-demand health advice. This feature will be available in our next update.
                 </p>
+
+                <div className="bg-stone-50 dark:bg-stone-800 p-5 rounded-[2rem] border border-stone-100 dark:border-stone-700">
+                  <h4 className="text-[10px] font-black text-stone-900 dark:text-white uppercase tracking-widest mb-3">In the meantime:</h4>
+                  <ul className="space-y-3 text-left">
+                    <li className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-3 font-medium">
+                      <CheckCircle2 size={16} className="text-teal-500 mt-0.5 flex-shrink-0" />
+                      Check our community forums for shared experiences.
+                    </li>
+                    <li className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-3 font-medium">
+                      <CheckCircle2 size={16} className="text-teal-500 mt-0.5 flex-shrink-0" />
+                      Use the "Contact My Doctor" feature for medical concerns.
+                    </li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => setShowExpertModal(false)}
+                  className="w-full bg-teal-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-teal-100 dark:shadow-none hover:bg-teal-700 transition-colors"
+                >
+                  Got it
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Emergency Mode Modal */}
+        {showEmergencyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-stone-900 w-full max-w-md rounded-[3rem] p-8 shadow-2xl space-y-6 border border-stone-100 dark:border-stone-800 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                  <div className="bg-red-100 dark:bg-red-900/30 w-14 h-14 rounded-2xl flex items-center justify-center text-red-600 dark:text-red-400 shadow-lg shadow-red-100 dark:shadow-none">
+                    <AlertCircle size={28} />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-stone-900 dark:text-white tracking-tight">Emergency Mode</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-500 mt-1">Immediate Action Guide</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowEmergencyModal(false)} 
+                  className="p-2 bg-stone-50 dark:bg-stone-800 rounded-full transition-all hover:scale-110 active:scale-95"
+                >
+                  <X size={20} className="text-stone-400 dark:text-stone-500" />
+                </button>
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <button 
-                  onClick={() => setShowEmergencyModal(false)}
-                  className="flex-1 py-4 rounded-2xl font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleEmergencyAlert}
-                  className="flex-1 py-4 rounded-2xl font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100"
-                >
-                  Send Alert
-                </button>
+              <div className="space-y-4">
+                <div className="bg-red-50 dark:bg-red-950/30 p-5 rounded-[2rem] border border-red-100 dark:border-red-900/50">
+                  <h4 className="text-sm font-black text-red-800 dark:text-red-200 mb-3 flex items-center gap-2">
+                    <Activity size={18} /> When to go to the hospital
+                  </h4>
+                  <ul className="space-y-2">
+                    <li className="text-xs text-red-700 dark:text-red-300 flex items-start gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+                      Contractions are 5 minutes apart, lasting 1 minute, for 1 hour (5-1-1 rule)
+                    </li>
+                    <li className="text-xs text-red-700 dark:text-red-300 flex items-start gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+                      Your water breaks (note the color and time)
+                    </li>
+                    <li className="text-xs text-red-700 dark:text-red-300 flex items-start gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+                      Heavy vaginal bleeding
+                    </li>
+                    <li className="text-xs text-red-700 dark:text-red-300 flex items-start gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+                      Decreased fetal movement
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-stone-50 dark:bg-stone-800 p-5 rounded-[2rem] border border-stone-100 dark:border-stone-700">
+                  <h4 className="text-sm font-black text-stone-900 dark:text-white mb-3 flex items-center gap-2">
+                    <ShieldCheck size={18} className="text-stone-500" /> What to do during early labour
+                  </h4>
+                  <ul className="space-y-2">
+                    <li className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-2 font-medium">
+                      <CheckCircle2 size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      Stay calm and rest as much as possible
+                    </li>
+                    <li className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-2 font-medium">
+                      <CheckCircle2 size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      Stay hydrated and eat light snacks
+                    </li>
+                    <li className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-2 font-medium">
+                      <CheckCircle2 size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      Take a warm shower or bath to ease pain
+                    </li>
+                    <li className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-2 font-medium">
+                      <CheckCircle2 size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      Time your contractions
+                    </li>
+                  </ul>
+                </div>
+
+                {profile.doctorContact ? (
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest ml-2">Send alert to Dr. {profile.doctorContact.name}</label>
+                    <textarea 
+                      value={emergencyNote}
+                      onChange={(e) => setEmergencyNote(e.target.value)}
+                      placeholder="Add a note (e.g. heavy bleeding, water broke)"
+                      className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-[1.5rem] p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all h-20 resize-none text-stone-900 dark:text-white"
+                    />
+                    <motion.button 
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleEmergencyAlert}
+                      className="w-full py-4 rounded-2xl font-black text-white bg-red-600 hover:bg-red-700 transition-all shadow-xl shadow-red-100 dark:shadow-none active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <Send size={18} /> Send Alert to Doctor
+                    </motion.button>
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-2xl border border-amber-100 dark:border-amber-900/50">
+                    <p className="text-xs text-amber-800 dark:text-amber-200 font-medium text-center">
+                      Add your doctor's contact info in the "Contact My Doctor" section to send quick alerts.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -1015,9 +1195,9 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
       </AnimatePresence>
 
       {/* Emergency Reminder */}
-      <section className="px-4">
-        <div className="bg-rose-50 p-5 rounded-2xl border border-rose-100">
-          <p className="text-rose-800 text-xs font-medium text-center">
+      <section className="px-6">
+        <div className="bg-rose-50 dark:bg-rose-950/30 p-6 rounded-[2rem] border border-rose-100 dark:border-rose-900/50">
+          <p className="text-rose-800 dark:text-rose-200 text-xs font-bold text-center leading-relaxed">
             If you are feeling overwhelmed or having thoughts of hurting yourself or your baby, please use the emergency button at the top right immediately.
           </p>
         </div>

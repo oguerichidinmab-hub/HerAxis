@@ -3,6 +3,7 @@ import { UserProfile, UserStage, Appointment, JournalEntry } from './types';
 import { auth, db, logoutUser } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, deleteDoc, getDocs } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from './lib/firestoreErrorHandler';
 
 interface UserContextType {
   user: User | null;
@@ -27,7 +28,6 @@ const DEFAULT_PROFILE: UserProfile = {
   journalEntries: [],
   preferences: {
     largeText: false,
-    simpleUI: false,
     voiceGuidance: false,
     fruitTheme: 'standard',
     googleSyncEnabled: false,
@@ -68,9 +68,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Initialize profile if it doesn't exist
         const initialProfile = { ...DEFAULT_PROFILE, name: user.displayName || 'Mama' };
-        setDoc(profileRef, initialProfile);
+        setDoc(profileRef, initialProfile).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`));
       }
-    });
+    }, (err) => handleFirestoreError(err, OperationType.GET, `users/${user.uid}`));
 
     // 2. Sync Appointments
     const apptsRef = collection(db, 'users', user.uid, 'appointments');
@@ -78,7 +78,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubAppts = onSnapshot(qAppts, (snap) => {
       const appts = snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment));
       setProfile(prev => ({ ...prev, appointments: appts }));
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, `users/${user.uid}/appointments`));
 
     // 3. Sync Journal Entries
     const journalRef = collection(db, 'users', user.uid, 'journal_entries');
@@ -87,7 +87,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const entries = snap.docs.map(d => ({ id: d.id, ...d.data() } as JournalEntry));
       setProfile(prev => ({ ...prev, journalEntries: entries }));
       setLoading(false);
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, `users/${user.uid}/journal_entries`));
 
     return () => {
       unsubProfile();
@@ -104,7 +104,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await updateDoc(doc(db, 'users', user.uid), updates);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
     }
   };
 
@@ -120,7 +120,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await setDoc(doc(db, 'users', user.uid, 'appointments', id), newAppointment);
       } catch (error) {
-        console.error("Error adding appointment:", error);
+        handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}/appointments/${id}`);
       }
     } else {
       setProfile(prev => ({
@@ -163,7 +163,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await deleteDoc(doc(db, 'users', user.uid, 'appointments', id));
       } catch (error) {
-        console.error("Error removing appointment:", error);
+        handleFirestoreError(error, OperationType.DELETE, `users/${user.uid}/appointments/${id}`);
       }
     } else {
       setProfile(prev => ({
@@ -181,7 +181,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await updateDoc(doc(db, 'users', user.uid, 'appointments', id), updates);
       } catch (error) {
-        console.error("Error updating appointment:", error);
+        handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}/appointments/${id}`);
       }
     } else {
       setProfile(prev => ({
@@ -229,7 +229,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await setDoc(doc(db, 'users', user.uid, 'journal_entries', id), newEntry);
       } catch (error) {
-        console.error("Error adding journal entry:", error);
+        handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}/journal_entries/${id}`);
       }
     } else {
       setProfile(prev => ({
@@ -244,7 +244,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await deleteDoc(doc(db, 'users', user.uid, 'journal_entries', id));
       } catch (error) {
-        console.error("Error removing journal entry:", error);
+        handleFirestoreError(error, OperationType.DELETE, `users/${user.uid}/journal_entries/${id}`);
       }
     } else {
       setProfile(prev => ({
@@ -259,7 +259,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await updateDoc(doc(db, 'users', user.uid, 'journal_entries', id), updates);
       } catch (error) {
-        console.error("Error updating journal entry:", error);
+        handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}/journal_entries/${id}`);
       }
     } else {
       setProfile(prev => ({

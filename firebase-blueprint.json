@@ -122,6 +122,10 @@
     "/recovery_comments/{recoveryId}/comments/{commentId}": {
       "schema": "Comment",
       "description": "Comments on postpartum recovery guides"
+    },
+    "/weekly_chats/{chatId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Weekly group chat comments"
     }
   }
 }
