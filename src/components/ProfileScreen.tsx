@@ -4,7 +4,7 @@ import { UserStage } from '../types';
 import { 
   Settings, Bell, Shield, Accessibility, LogOut, ChevronRight, 
   Volume2, Type, Layout, Sparkles, Calendar, Baby, Edit3, Check,
-  UserCircle, ArrowLeft, Moon, Sun
+  UserCircle, ArrowLeft, Moon, Sun, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../ThemeContext';

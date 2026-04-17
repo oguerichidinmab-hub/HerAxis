@@ -106,7 +106,7 @@ export const HospitalListModal: React.FC<HospitalListModalProps> = ({ isOpen, on
   };
 
   const content = (
-    <div className={`${inline ? '' : 'bg-white w-full max-w-2xl rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh]'}`}>
+    <div className={`${inline ? '' : 'bg-white w-full max-w-2xl rounded-[2.5rem] p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh]'}`}>
       {!inline && (
         <button 
           onClick={onClose} 
@@ -309,14 +309,14 @@ export const HospitalListModal: React.FC<HospitalListModalProps> = ({ isOpen, on
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex justify-center items-start sm:items-center overflow-y-auto p-4 pointer-events-auto"
         >
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-2xl rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh]"
+            className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh] my-auto"
           >
             {content}
           </motion.div>
@@ -329,14 +329,14 @@ export const HospitalListModal: React.FC<HospitalListModalProps> = ({ isOpen, on
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setSelectedHospital(null)}
-                className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+                className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex justify-center items-start sm:items-center overflow-y-auto p-4 pointer-events-auto"
               >
                 <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+                  className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] my-auto"
                 >
                   <button 
                     onClick={() => setSelectedHospital(null)} 

@@ -66,7 +66,7 @@ export const AccessibilityButton: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 accessibility-modal"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 accessibility-modal pointer-events-auto"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}

@@ -445,7 +445,7 @@ export const BABY_UPDATES: BabyUpdate[] = [
 
 export const FORUM_POSTS: ForumPost[] = [
   {
-    id: '1',
+    id: 'post-1',
     author: 'Mama Sarah',
     content: 'Has anyone else experienced sudden cravings for pickles and ice cream? Is it normal? I feel a bit silly but it is so strong!',
     timestamp: '2 hours ago',
@@ -457,7 +457,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Pregnancy questions'
   },
   {
-    id: '2',
+    id: 'post-2',
     author: 'NewMom_Joy',
     content: 'My 3-month-old finally slept through the night! There is light at the end of the tunnel! Sending sleep dust to everyone.',
     timestamp: '5 hours ago',
@@ -468,7 +468,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Baby care'
   },
   {
-    id: '3',
+    id: 'post-3',
     author: 'Grace_M',
     content: 'Feeling a bit overwhelmed today. The house is a mess and I just want to cry. Is this just the baby blues or something more?',
     timestamp: '1 hour ago',
@@ -480,7 +480,7 @@ export const FORUM_POSTS: ForumPost[] = [
     category: 'Emotional well-being'
   },
   {
-    id: '4',
+    id: 'post-4',
     author: 'Aisha_B',
     content: 'Breastfeeding was so hard at first, but we finally found our rhythm! To any new moms struggling: it gets easier, I promise.',
     timestamp: '8 hours ago',
@@ -494,7 +494,7 @@ export const FORUM_POSTS: ForumPost[] = [
 
 export const NUTRITION_TIPS: NutritionTip[] = [
   {
-    id: '1',
+    id: 'nt-1',
     title: 'Iron-Rich Foods',
     content: 'Iron is crucial for your blood supply and baby\'s development.',
     mealSuggestion: 'Spinach and lentil soup with a squeeze of lemon for better absorption.',
@@ -506,7 +506,7 @@ export const NUTRITION_TIPS: NutritionTip[] = [
     nutrients: ["Iron", "Vitamin C", "Folate"]
   },
   {
-    id: '2',
+    id: 'nt-2',
     title: 'Healthy Fats',
     content: 'DHA is essential for baby\'s brain and eye development.',
     mealSuggestion: 'Grilled salmon with avocado salad.',
