@@ -17,7 +17,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
   const { profile, updateProfile, togglePreference, logout } = useUser();
   const { theme, toggleTheme } = useTheme();
   const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState(profile.name);
   const [isEditingBabyName, setIsEditingBabyName] = useState(false);
+  const [editBabyName, setEditBabyName] = useState(profile.babyName || '');
   const [isEditingDueDate, setIsEditingDueDate] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [activeSettingModal, setActiveSettingModal] = useState<string | null>(null);
@@ -49,19 +51,36 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
               <input 
                 autoFocus
                 type="text"
-                value={profile.name}
-                onChange={(e) => updateProfile({ name: e.target.value })}
-                onBlur={() => setIsEditingName(false)}
-                onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={() => {
+                  updateProfile({ name: editName });
+                  setIsEditingName(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    updateProfile({ name: editName });
+                    setIsEditingName(false);
+                  }
+                }}
                 className="text-3xl font-bold text-stone-900 dark:text-white bg-transparent border-b-2 border-pink-500 text-center outline-none px-2 w-full max-w-[280px]"
               />
-              <button onClick={() => setIsEditingName(false)} className="text-pink-600 dark:text-pink-400">
+              <button 
+                onClick={() => {
+                  updateProfile({ name: editName });
+                  setIsEditingName(false);
+                }} 
+                className="text-pink-600 dark:text-pink-400"
+              >
                 <Check size={24} />
               </button>
             </div>
           ) : (
             <div 
-              onClick={() => setIsEditingName(true)}
+              onClick={() => {
+                setEditName(profile.name);
+                setIsEditingName(true);
+              }}
               className="flex items-center justify-center gap-3 cursor-pointer group"
             >
               <h1 className="text-3xl font-black text-stone-900 dark:text-white tracking-tight">{profile.name}</h1>
@@ -192,16 +211,27 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
               <input 
                 autoFocus
                 type="text"
-                value={profile.babyName || ''}
-                onChange={(e) => updateProfile({ babyName: e.target.value })}
-                onBlur={() => setIsEditingBabyName(false)}
-                onKeyDown={(e) => e.key === 'Enter' && setIsEditingBabyName(false)}
+                value={editBabyName}
+                onChange={(e) => setEditBabyName(e.target.value)}
+                onBlur={() => {
+                  updateProfile({ babyName: editBabyName });
+                  setIsEditingBabyName(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    updateProfile({ babyName: editBabyName });
+                    setIsEditingBabyName(false);
+                  }
+                }}
                 placeholder="Name..."
                 className="w-full font-black text-stone-800 dark:text-white text-sm bg-stone-50 dark:bg-stone-800 rounded-xl px-3 py-2 outline-none border border-stone-100 dark:border-stone-700"
               />
             ) : (
               <p 
-                onClick={() => setIsEditingBabyName(true)}
+                onClick={() => {
+                  setEditBabyName(profile.babyName || '');
+                  setIsEditingBabyName(true);
+                }}
                 className="font-black text-stone-800 dark:text-white text-base cursor-pointer hover:text-pink-600 dark:hover:text-pink-400 transition-colors"
               >
                 {profile.babyName || 'Edit Name'}

@@ -52,10 +52,10 @@ export const EmergencyButton: React.FC = () => {
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-stone-900 w-full max-w-md rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[90vh] border border-stone-100 dark:border-stone-800"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-stone-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl overflow-y-auto max-h-[90vh] border border-stone-100 dark:border-stone-800"
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-rose-600 flex items-center gap-2">
@@ -131,14 +131,14 @@ export const EmergencyButton: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowContactActions(false)}
-            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end justify-center sm:items-center p-4"
+            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-stone-900 w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl space-y-6 border-t sm:border border-stone-100 dark:border-stone-800"
+              className="bg-white dark:bg-stone-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl space-y-6 border border-stone-100 dark:border-stone-800"
             >
               <div className="flex justify-between items-center">
                 <div>
@@ -235,10 +235,10 @@ export const EmergencyButton: React.FC = () => {
             className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-stone-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl space-y-6 border border-stone-100 dark:border-stone-800"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-stone-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl space-y-6 border border-stone-100 dark:border-stone-800"
             >
               <div className="text-center space-y-3">
                 <div className="bg-rose-100 dark:bg-rose-900/30 w-16 h-16 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-400 mx-auto shadow-lg shadow-rose-100 dark:shadow-none">
